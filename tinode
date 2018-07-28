@@ -18,7 +18,7 @@
 . /etc/sysconfig/network
 
 # Check that networking is up.
-[ "$NETWORKING" = "no" ] &amp;&amp; exit 0
+[ "$NETWORKING" = "no" ] && exit 0
 
 USER="root"
 APPNAME="tinode"
@@ -40,7 +40,7 @@ start() {
   daemon --user=$USER "$APPBIN $APPARGS &gt;&gt;$LOGFILE &amp;"
   RETVAL=$?
   echo
-  [ $RETVAL -eq 0 ] &amp;&amp; touch $LOCKFILE
+  [ $RETVAL -eq 0 ] && touch $LOCKFILE
   return $RETVAL
 }
 
@@ -49,7 +49,7 @@ stop() {
   killproc $APPBIN
   RETVAL=$?
   echo
-  [ $RETVAL -eq 0 ] &amp;&amp; rm -f $LOCKFILE
+  [ $RETVAL -eq 0 ] && rm -f $LOCKFILE
   return $RETVAL
 }
 
@@ -63,12 +63,12 @@ rh_status() {
 }
 
 rh_status_q() {
-  rh_status &gt;/dev/null 2&gt;&amp;1
+  rh_status &gt;/dev/null 2>&1
 }
 
 case "$1" in
     start)
-    rh_status_q &amp;&amp; exit 0
+    rh_status_q && exit 0
     $1
   ;;
     stop)
