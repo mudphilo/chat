@@ -10,9 +10,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/tinode/chat/server/auth"
-	"github.com/tinode/chat/server/store"
-	t "github.com/tinode/chat/server/store/types"
+	"github.com/mudphilo/chat/server/auth"
+	"github.com/mudphilo/chat/server/store"
+	t "github.com/mudphilo/chat/server/store/types"
 	rdb "gopkg.in/gorethink/gorethink.v4"
 )
 

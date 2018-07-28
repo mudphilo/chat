@@ -49,7 +49,7 @@ RUN apk add --no-cache bash grep
 
 WORKDIR /opt/tinode
 
-ADD https://github.com/tinode/chat/releases/download/v$VERSION/tinode-$TARGET_DB.linux-amd64.tar.gz .
+ADD https://github.com/mudphilo/chat/releases/download/v$VERSION/tinode-$TARGET_DB.linux-amd64.tar.gz .
 
 RUN tar -xzf tinode-$TARGET_DB.linux-amd64.tar.gz \
 	&& rm tinode-$TARGET_DB.linux-amd64.tar.gz

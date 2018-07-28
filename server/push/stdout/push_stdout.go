@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/tinode/chat/server/push"
+	"github.com/mudphilo/chat/server/push"
 )
 
 var handler stdoutPush

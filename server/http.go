@@ -23,8 +23,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/tinode/chat/server/store"
-	"github.com/tinode/chat/server/store/types"
+	"github.com/mudphilo/chat/server/store"
+	"github.com/mudphilo/chat/server/store/types"
 
 	"golang.org/x/crypto/acme/autocert"
 )

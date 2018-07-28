@@ -35,4 +35,4 @@ Avatar photos curtesy of https://www.pexels.com/ under [CC0 license](https://www
 
 ## Links:
 
-See [database schema](https://github.com/tinode/chat/tree/master/server/dbschema.md)
+See [database schema](https://github.com/mudphilo/chat/tree/master/server/dbschema.md)

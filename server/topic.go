@@ -15,10 +15,10 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/tinode/chat/server/auth"
-	"github.com/tinode/chat/server/push"
-	"github.com/tinode/chat/server/store"
-	"github.com/tinode/chat/server/store/types"
+	"github.com/mudphilo/chat/server/auth"
+	"github.com/mudphilo/chat/server/push"
+	"github.com/mudphilo/chat/server/store"
+	"github.com/mudphilo/chat/server/store/types"
 )
 
 // Topic is an isolated communication channel

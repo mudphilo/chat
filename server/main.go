@@ -27,29 +27,29 @@ import (
 	gzip "github.com/gorilla/handlers"
 
 	// Authenticators
-	"github.com/tinode/chat/server/auth"
-	_ "github.com/tinode/chat/server/auth/anon"
-	_ "github.com/tinode/chat/server/auth/basic"
-	_ "github.com/tinode/chat/server/auth/token"
+	"github.com/mudphilo/chat/server/auth"
+	_ "github.com/mudphilo/chat/server/auth/anon"
+	_ "github.com/mudphilo/chat/server/auth/basic"
+	_ "github.com/mudphilo/chat/server/auth/token"
 
 	// Database backends
-	_ "github.com/tinode/chat/server/db/mysql"
-	_ "github.com/tinode/chat/server/db/rethinkdb"
+	_ "github.com/mudphilo/chat/server/db/mysql"
+	_ "github.com/mudphilo/chat/server/db/rethinkdb"
 
 	// Push notifications
-	"github.com/tinode/chat/server/push"
-	_ "github.com/tinode/chat/server/push/fcm"
-	_ "github.com/tinode/chat/server/push/stdout"
+	"github.com/mudphilo/chat/server/push"
+	_ "github.com/mudphilo/chat/server/push/fcm"
+	_ "github.com/mudphilo/chat/server/push/stdout"
 
-	"github.com/tinode/chat/server/store"
+	"github.com/mudphilo/chat/server/store"
 
 	// Credential validators
-	_ "github.com/tinode/chat/server/validate/email"
-	_ "github.com/tinode/chat/server/validate/tel"
+	_ "github.com/mudphilo/chat/server/validate/email"
+	_ "github.com/mudphilo/chat/server/validate/tel"
 	"google.golang.org/grpc"
 
 	// File upload handlers
-	_ "github.com/tinode/chat/server/media/fs"
+	_ "github.com/mudphilo/chat/server/media/fs"
 )
 
 const (

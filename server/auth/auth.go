@@ -3,7 +3,7 @@ package auth
 import (
 	"time"
 
-	"github.com/tinode/chat/server/store/types"
+	"github.com/mudphilo/chat/server/store/types"
 )
 
 // Level is the type for authentication levels.

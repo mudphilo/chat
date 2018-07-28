@@ -5,7 +5,7 @@ package media
 import (
 	"io"
 
-	"github.com/tinode/chat/server/store/types"
+	"github.com/mudphilo/chat/server/store/types"
 )
 
 // ReadSeekCloser is an interface expected by the downloader.

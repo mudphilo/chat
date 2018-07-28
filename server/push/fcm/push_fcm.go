@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/tinode/chat/server/push"
-	"github.com/tinode/chat/server/store"
-	t "github.com/tinode/chat/server/store/types"
+	"github.com/mudphilo/chat/server/push"
+	"github.com/mudphilo/chat/server/store"
+	t "github.com/mudphilo/chat/server/store/types"
 	"github.com/tinode/fcm"
 )
 
