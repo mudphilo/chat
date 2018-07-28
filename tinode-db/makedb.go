@@ -14,6 +14,7 @@ import (
 	_ "github.com/mudphilo/chat/server/db/mysql"
 	_ "github.com/mudphilo/chat/server/db/rethinkdb"
 	"github.com/mudphilo/chat/server/store"
+	"go/build"
 )
 
 type configType struct {
@@ -150,9 +151,12 @@ func getPassword(n int) string {
 }
 
 func main() {
+
+	var configPath = build.Default.GOPATH + "/src/github.com/mudphilo/chat/tinode-db/tinode.conf"
+
 	var reset = flag.Bool("reset", false, "first delete the database if one exists")
 	var datafile = flag.String("data", "", "name of file with sample data")
-	var conffile = flag.String("config", "./tinode.conf", "config of the database connection")
+	var conffile = flag.String("config", configPath, "config of the database connection")
 	flag.Parse()
 
 	var data Data
