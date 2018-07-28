@@ -37,7 +37,7 @@ start() {
   [ -f $LOGFILE ] || touch $LOGFILE
 
   echo -n $"Starting $APPNAME: "
-  daemon --user=$USER "$APPBIN $APPARGS &gt;&gt;$LOGFILE &amp;"
+  daemon --user=$USER "$APPBIN $APPARGS >>$LOGFILE &"
   RETVAL=$?
   echo
   [ $RETVAL -eq 0 ] && touch $LOCKFILE
@@ -63,7 +63,7 @@ rh_status() {
 }
 
 rh_status_q() {
-  rh_status &gt;/dev/null 2>&1
+  rh_status >/dev/null 2>&1
 }
 
 case "$1" in
