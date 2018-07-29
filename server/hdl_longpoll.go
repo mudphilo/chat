@@ -13,7 +13,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io/ioutil"
-	"log"
+	"github.com/mudphilo/chat/logger"
 	"net/http"
 	"time"
 )
@@ -26,12 +26,12 @@ func (sess *Session) writeOnce(wrt http.ResponseWriter) {
 	select {
 	case msg, ok := <-sess.send:
 		if !ok {
-			log.Println("writeOnce: reading from a closed channel")
+			logger.Log.Println("writeOnce: reading from a closed channel")
 		} else if err := lpWrite(wrt, msg); err != nil {
-			log.Println("sess.writeOnce: " + err.Error())
+			logger.Log.Println("sess.writeOnce: " + err.Error())
 		}
 	case <-closed:
-		log.Println("conn.writeOnce: connection closed by peer")
+		logger.Log.Println("conn.writeOnce: connection closed by peer")
 
 	case msg := <-sess.stop:
 		// Make session unavailable
@@ -44,7 +44,7 @@ func (sess *Session) writeOnce(wrt http.ResponseWriter) {
 	case <-time.After(pingPeriod):
 		// just write an empty packet on timeout
 		if _, err := wrt.Write([]byte{}); err != nil {
-			log.Println("sess.writeOnce: timout/" + err.Error())
+			logger.Log.Println("sess.writeOnce: timout/" + err.Error())
 		}
 	}
 }
@@ -109,7 +109,7 @@ func serveLongPoll(wrt http.ResponseWriter, req *http.Request) {
 
 	// TODO(gene): respond differently to valious HTTP methods
 
-	// log.Printf("HTTP %s %s?%s from '%s' %d bytes", req.Method,
+	// logger.Log.Printf("HTTP %s %s?%s from '%s' %d bytes", req.Method,
 	// 	req.URL.Path, req.URL.RawQuery, req.RemoteAddr, req.ContentLength)
 
 	// Get session id
@@ -118,7 +118,7 @@ func serveLongPoll(wrt http.ResponseWriter, req *http.Request) {
 	if sid == "" {
 		// New session
 		sess = globals.sessionStore.Create(wrt, "")
-		log.Println("longPoll: new session created, sid=", sess.sid)
+		logger.Log.Println("longPoll: new session created, sid=", sess.sid)
 		wrt.WriteHeader(http.StatusCreated)
 		pkt := NoErrCreated(req.FormValue("id"), "", now)
 		pkt.Ctrl.Params = map[string]string{
@@ -133,7 +133,7 @@ func serveLongPoll(wrt http.ResponseWriter, req *http.Request) {
 	// Existing session
 	sess = globals.sessionStore.Get(sid)
 	if sess == nil {
-		log.Println("longPoll: invalid or expired session id", sid)
+		logger.Log.Println("longPoll: invalid or expired session id", sid)
 		wrt.WriteHeader(http.StatusForbidden)
 		enc.Encode(ErrSessionNotFound(now))
 		return
@@ -144,7 +144,7 @@ func serveLongPoll(wrt http.ResponseWriter, req *http.Request) {
 	if req.ContentLength != 0 {
 		// Read payload and send it for processing.
 		if code, err := sess.readOnce(wrt, req); err != nil {
-			log.Println("longPoll: " + err.Error())
+			logger.Log.Println("longPoll: " + err.Error())
 			// Failed to read request, report an error, if possible
 			if code != 0 {
 				wrt.WriteHeader(code)

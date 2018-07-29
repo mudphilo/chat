@@ -4,7 +4,7 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"log"
+	"github.com/mudphilo/chat/logger"
 	"strings"
 	"time"
 
@@ -234,7 +234,7 @@ func pluginsInit(configString json.RawMessage) {
 
 	var config []pluginConfig
 	if err := json.Unmarshal(configString, &config); err != nil {
-		log.Fatal(err)
+		logger.Log.Fatal(err)
 	}
 
 	nameIndex := make(map[string]bool)
@@ -247,7 +247,7 @@ func pluginsInit(configString json.RawMessage) {
 		}
 
 		if nameIndex[conf.Name] {
-			log.Fatalf("plugins: duplicate name '%s'", conf.Name)
+			logger.Log.Fatalf("plugins: duplicate name '%s'", conf.Name)
 		}
 
 		globals.plugins[count] = Plugin{
@@ -259,29 +259,29 @@ func pluginsInit(configString json.RawMessage) {
 		var err error
 		if globals.plugins[count].filterFireHose, err =
 			ParsePluginFilter(conf.Filters.FireHose, plgFilterByTopicType|plgFilterByPacket); err != nil {
-			log.Fatal("plugins: bad FireHose filter", err)
+			logger.Log.Fatal("plugins: bad FireHose filter", err)
 		}
 		if globals.plugins[count].filterAccount, err =
 			ParsePluginFilter(conf.Filters.Account, plgFilterByAction); err != nil {
-			log.Fatal("plugins: bad Account filter", err)
+			logger.Log.Fatal("plugins: bad Account filter", err)
 		}
 		if globals.plugins[count].filterTopic, err =
 			ParsePluginFilter(conf.Filters.Topic, plgFilterByTopicType|plgFilterByAction); err != nil {
-			log.Fatal("plugins: bad FireHose filter", err)
+			logger.Log.Fatal("plugins: bad FireHose filter", err)
 		}
 		if globals.plugins[count].filterSubscription, err =
 			ParsePluginFilter(conf.Filters.Subscription, plgFilterByTopicType|plgFilterByAction); err != nil {
-			log.Fatal("plugins: bad Subscription filter", err)
+			logger.Log.Fatal("plugins: bad Subscription filter", err)
 		}
 		if globals.plugins[count].filterMessage, err =
 			ParsePluginFilter(conf.Filters.Message, plgFilterByTopicType|plgFilterByAction); err != nil {
-			log.Fatal("plugins: bad Message filter", err)
+			logger.Log.Fatal("plugins: bad Message filter", err)
 		}
 
 		globals.plugins[count].filterFind = conf.Filters.Find
 
 		if parts := strings.SplitN(conf.ServiceAddr, "://", 2); len(parts) < 2 {
-			log.Fatal("plugins: invalid server address format", conf.ServiceAddr)
+			logger.Log.Fatal("plugins: invalid server address format", conf.ServiceAddr)
 		} else {
 			globals.plugins[count].network = parts[0]
 			globals.plugins[count].addr = parts[1]
@@ -289,7 +289,7 @@ func pluginsInit(configString json.RawMessage) {
 
 		globals.plugins[count].conn, err = grpc.Dial(globals.plugins[count].addr, grpc.WithInsecure())
 		if err != nil {
-			log.Fatalf("plugins: connection failure %v", err)
+			logger.Log.Fatalf("plugins: connection failure %v", err)
 		}
 
 		globals.plugins[count].client = pbx.NewPluginClient(globals.plugins[count].conn)
@@ -300,7 +300,7 @@ func pluginsInit(configString json.RawMessage) {
 
 	globals.plugins = globals.plugins[:count]
 	if len(globals.plugins) == 0 {
-		log.Println("plugins: no active plugins found")
+		logger.Log.Println("plugins: no active plugins found")
 		globals.plugins = nil
 	} else {
 		var names []string
@@ -308,7 +308,7 @@ func pluginsInit(configString json.RawMessage) {
 			names = append(names, globals.plugins[i].name+"("+globals.plugins[i].addr+")")
 		}
 
-		log.Println("plugins: active", "'"+strings.Join(names, "', '")+"'")
+		logger.Log.Println("plugins: active", "'"+strings.Join(names, "', '")+"'")
 	}
 }
 
@@ -384,7 +384,7 @@ func pluginFireHose(sess *Session, msg *ClientComMessage) (*ClientComMessage, *S
 
 		} else if p.failureCode != 0 {
 			// Plugin failed and it's configured to stop further processing.
-			log.Println("plugin: failed,", p.name, err)
+			logger.Log.Println("plugin: failed,", p.name, err)
 			return nil, &ServerComMessage{Ctrl: &MsgServerCtrl{
 				Id:        id,
 				Code:      p.failureCode,
@@ -393,7 +393,7 @@ func pluginFireHose(sess *Session, msg *ClientComMessage) (*ClientComMessage, *S
 				Timestamp: ts}}
 		} else {
 			// Plugin failed but configured to ignore failure.
-			log.Println("plugin: failure ignored,", p.name, err)
+			logger.Log.Println("plugin: failure ignored,", p.name, err)
 		}
 	}
 
@@ -427,7 +427,7 @@ func pluginFind(user types.Uid, query string) (string, []types.Subscription, err
 		}
 		resp, err := p.client.Find(ctx, find)
 		if err != nil {
-			log.Println("plugins: Find call failed", p.name, err)
+			logger.Log.Println("plugins: Find call failed", p.name, err)
 			return "", nil, err
 		}
 		respStatus := resp.GetStatus()
@@ -484,7 +484,7 @@ func pluginAccount(user *types.User, action int) {
 			ctx = context.Background()
 		}
 		if _, err := p.client.Account(ctx, event); err != nil {
-			log.Println("plugins: Account call failed", p.name, err)
+			logger.Log.Println("plugins: Account call failed", p.name, err)
 		}
 	}
 }
@@ -519,7 +519,7 @@ func pluginTopic(topic *Topic, action int) {
 			ctx = context.Background()
 		}
 		if _, err := p.client.Topic(ctx, event); err != nil {
-			log.Println("plugins: Topic call failed", p.name, err)
+			logger.Log.Println("plugins: Topic call failed", p.name, err)
 		}
 	}
 
@@ -567,7 +567,7 @@ func pluginSubscription(sub *types.Subscription, action int) {
 			ctx = context.Background()
 		}
 		if _, err := p.client.Subscription(ctx, event); err != nil {
-			log.Println("plugins: Subscription call failed", p.name, err)
+			logger.Log.Println("plugins: Subscription call failed", p.name, err)
 		}
 	}
 
@@ -604,7 +604,7 @@ func pluginMessage(data *MsgServerData, action int) {
 			ctx = context.Background()
 		}
 		if _, err := p.client.Message(ctx, event); err != nil {
-			log.Println("plugins: Message call failed", p.name, err)
+			logger.Log.Println("plugins: Message call failed", p.name, err)
 		}
 	}
 }

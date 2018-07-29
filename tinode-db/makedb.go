@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"flag"
 	"io/ioutil"
-	"log"
+	"github.com/mudphilo/chat/logger"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -163,11 +163,11 @@ func main() {
 	if *datafile != "" {
 		raw, err := ioutil.ReadFile(*datafile)
 		if err != nil {
-			log.Fatal("Failed to parse data:", err)
+			logger.Log.Fatal("Failed to parse data:", err)
 		}
 		err = json.Unmarshal(raw, &data)
 		if err != nil {
-			log.Fatal(err)
+			logger.Log.Fatal(err)
 		}
 	}
 
@@ -176,9 +176,9 @@ func main() {
 
 	var config configType
 	if file, err := os.Open(*conffile); err != nil {
-		log.Fatal("Failed to read config file:", err)
+		logger.Log.Fatal("Failed to read config file:", err)
 	} else if err = json.NewDecoder(jcr.New(file)).Decode(&config); err != nil {
-		log.Fatal("Failed to parse config file:", err)
+		logger.Log.Fatal("Failed to parse config file:", err)
 	}
 
 	genDb(*reset, string(config.StoreConfig), &data)

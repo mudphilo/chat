@@ -12,7 +12,7 @@ package main
 import (
 	"container/list"
 	"encoding/json"
-	"log"
+	"github.com/mudphilo/chat/logger"
 	"net/http"
 	"strings"
 	"sync"
@@ -164,7 +164,7 @@ func (s *Session) queueOut(msg *ServerComMessage) bool {
 	select {
 	case s.send <- s.serialize(msg):
 	case <-time.After(time.Microsecond * 50):
-		log.Println("session.queueOut: timeout")
+		logger.Log.Println("session.queueOut: timeout")
 		return false
 	}
 	return true
@@ -180,7 +180,7 @@ func (s *Session) queueOutBytes(data []byte) bool {
 	select {
 	case s.send <- data:
 	case <-time.After(time.Microsecond * 50):
-		log.Println("session.queueOut: timeout")
+		logger.Log.Println("session.queueOut: timeout")
 		return false
 	}
 	return true
@@ -198,11 +198,11 @@ func (s *Session) cleanUp() {
 func (s *Session) dispatchRaw(raw []byte) {
 	var msg ClientComMessage
 
-	log.Printf("Session.dispatch got '%s' from '%s'", raw, s.remoteAddr)
+	logger.Log.Printf("Session.dispatch got '%s' from '%s'", raw, s.remoteAddr)
 
 	if err := json.Unmarshal(raw, &msg); err != nil {
 		// Malformed message
-		log.Println("Session.dispatch: " + err.Error())
+		logger.Log.Println("Session.dispatch: " + err.Error())
 		s.queueOut(ErrMalformed("", "", time.Now().UTC().Round(time.Millisecond)))
 		return
 	}
@@ -268,7 +268,7 @@ func (s *Session) dispatch(msg *ClientComMessage) {
 	default:
 		// Unknown message
 		s.queueOut(ErrMalformed("", "", msg.timestamp))
-		log.Println("Session.dispatch: unknown message")
+		logger.Log.Println("Session.dispatch: unknown message")
 	}
 
 	// Notify 'me' topic that this session is currently active
@@ -282,7 +282,7 @@ func (s *Session) dispatch(msg *ClientComMessage) {
 
 // Request to subscribe to a topic
 func (s *Session) subscribe(msg *ClientComMessage) {
-	log.Printf("Sub to '%s' from '%s'", msg.Sub.Topic, msg.from)
+	logger.Log.Printf("Sub to '%s' from '%s'", msg.Sub.Topic, msg.from)
 
 	var topic, expanded string
 
@@ -305,7 +305,7 @@ func (s *Session) subscribe(msg *ClientComMessage) {
 	}
 
 	if sub := s.getSub(expanded); sub != nil {
-		log.Printf("sess.subscribe: already subscribed to '%s'", expanded)
+		logger.Log.Printf("sess.subscribe: already subscribed to '%s'", expanded)
 		s.queueOut(InfoAlreadySubscribed(msg.Sub.Id, topic, msg.timestamp))
 	} else if globals.cluster.isRemoteTopic(expanded) {
 		// The topic is handled by a remote node. Forward message to it.
@@ -490,7 +490,7 @@ func (s *Session) acc(msg *ClientComMessage) {
 
 		// Check if login is unique.
 		if ok, err := authhdl.IsUnique(msg.Acc.Secret); !ok {
-			log.Println("auth: check unique failed", err)
+			logger.Log.Println("auth: check unique failed", err)
 			s.queueOut(decodeStoreError(err, msg.Acc.Id, "", msg.timestamp, nil))
 			return
 		}
@@ -504,7 +504,7 @@ func (s *Session) acc(msg *ClientComMessage) {
 
 		if tags := normalizeTags(msg.Acc.Tags); tags != nil {
 			if !restrictedTagsEqual(tags, nil, globals.immutableTagNS) {
-				log.Println("Attempt to directly assign restricted tags")
+				logger.Log.Println("Attempt to directly assign restricted tags")
 				s.queueOut(ErrPermissionDenied(msg.Acc.Id, "", msg.timestamp))
 				return
 			}
@@ -518,7 +518,7 @@ func (s *Session) acc(msg *ClientComMessage) {
 			cr := &creds[i]
 			vld := store.GetValidator(cr.Method)
 			if err := vld.PreCheck(cr.Value, cr.Params); err != nil {
-				log.Println("Failed credential pre-check", cr, err)
+				logger.Log.Println("Failed credential pre-check", cr, err)
 				s.queueOut(decodeStoreError(err, msg.Acc.Id, "", msg.timestamp, nil))
 				return
 			}
@@ -554,14 +554,14 @@ func (s *Session) acc(msg *ClientComMessage) {
 		}
 
 		if _, err := store.Users.Create(&user, private); err != nil {
-			log.Println("Failed to create user", err)
+			logger.Log.Println("Failed to create user", err)
 			s.queueOut(ErrUnknown(msg.Acc.Id, "", msg.timestamp))
 			return
 		}
 
 		rec, err := authhdl.AddRecord(&auth.Rec{Uid: user.Uid()}, msg.Acc.Secret)
 		if err != nil {
-			log.Println("auth: add record failed", err)
+			logger.Log.Println("auth: add record failed", err)
 			// Attempt to delete incomplete user record
 			store.Users.Delete(user.Uid(), false)
 			s.queueOut(decodeStoreError(err, msg.Acc.Id, "", msg.timestamp, nil))
@@ -571,7 +571,7 @@ func (s *Session) acc(msg *ClientComMessage) {
 		// When creating an account, the user must provide all required credentials.
 		// If any are missing, reject the request.
 		if len(creds) < len(globals.authValidators[rec.AuthLevel]) {
-			log.Println("missing credentials; have:", creds, "want:", globals.authValidators[rec.AuthLevel])
+			logger.Log.Println("missing credentials; have:", creds, "want:", globals.authValidators[rec.AuthLevel])
 			// Attempt to delete incomplete user record
 			store.Users.Delete(user.Uid(), false)
 			_, missing := stringSliceDelta(globals.authValidators[rec.AuthLevel], credentialMethods(creds))
@@ -585,7 +585,7 @@ func (s *Session) acc(msg *ClientComMessage) {
 			cr := &creds[i]
 			vld := store.GetValidator(cr.Method)
 			if err := vld.Request(user.Uid(), cr.Value, s.lang, cr.Params, cr.Response); err != nil {
-				log.Println("Failed to save or validate credential", err)
+				logger.Log.Println("Failed to save or validate credential", err)
 				// Delete incomplete user record.
 				store.Users.Delete(user.Uid(), false)
 				s.queueOut(decodeStoreError(err, msg.Acc.Id, "", msg.timestamp, nil))
@@ -630,20 +630,20 @@ func (s *Session) acc(msg *ClientComMessage) {
 			// TODO(gene): support adding new auth schemes
 			// TODO(gene): support the case when msg.Acc.User is not equal to the current user
 			if err := authhdl.UpdateRecord(&auth.Rec{Uid: s.uid}, msg.Acc.Secret); err != nil {
-				log.Println("auth: failed to update secret", err)
+				logger.Log.Println("auth: failed to update secret", err)
 				s.queueOut(decodeStoreError(err, msg.Acc.Id, "", msg.timestamp, nil))
 				return
 			}
 		} else if msg.Acc.Scheme != "" {
 			// Invalid or unknown auth scheme
-			log.Println("auth: unknown auth scheme", msg.Acc.Scheme)
+			logger.Log.Println("auth: unknown auth scheme", msg.Acc.Scheme)
 			s.queueOut(ErrMalformed(msg.Acc.Id, "", msg.timestamp))
 			return
 		} else if len(msg.Acc.Cred) > 0 {
 			// Use provided credentials for validation.
 			validated, err := s.getValidatedGred(s.uid, s.authLvl, msg.Acc.Cred)
 			if err != nil {
-				log.Println("failed to get validated credentials", err)
+				logger.Log.Println("failed to get validated credentials", err)
 				s.queueOut(decodeStoreError(err, msg.Acc.Id, "", msg.timestamp, nil))
 				return
 			}
@@ -661,7 +661,7 @@ func (s *Session) acc(msg *ClientComMessage) {
 
 	} else {
 		// session is not authenticated and this is not an attempt to create a new account
-		log.Println("acc failed: not a new account and no valid UID")
+		logger.Log.Println("acc failed: not a new account and no valid UID")
 		s.queueOut(ErrPermissionDenied(msg.Acc.Id, "", msg.timestamp))
 		return
 	}
@@ -682,7 +682,7 @@ func (s *Session) login(msg *ClientComMessage) {
 
 	handler := store.GetAuthHandler(msg.Login.Scheme)
 	if handler == nil {
-		log.Println("Unknown authentication scheme", msg.Login.Scheme)
+		logger.Log.Println("Unknown authentication scheme", msg.Login.Scheme)
 		s.queueOut(ErrAuthUnknownScheme(msg.Login.Id, "", msg.timestamp))
 		return
 	}
@@ -707,7 +707,7 @@ func (s *Session) login(msg *ClientComMessage) {
 		}
 	}
 	if err != nil {
-		log.Println("failed to validate credentials", err)
+		logger.Log.Println("failed to validate credentials", err)
 		s.queueOut(decodeStoreError(err, msg.Login.Id, "", msg.timestamp, nil))
 	} else {
 		s.queueOut(s.onLogin(msg.Login.Id, msg.timestamp, rec, missing))
@@ -743,7 +743,7 @@ func (s *Session) onLogin(msgID string, timestamp time.Time, rec *auth.Rec, miss
 			if err := store.Users.Update(rec.Uid,
 				map[string]interface{}{"Tags": normalizeTags(rec.Tags)}); err != nil {
 
-				log.Println("failed to update user's tags", err)
+				logger.Log.Println("failed to update user's tags", err)
 			}
 		}
 
@@ -755,7 +755,7 @@ func (s *Session) onLogin(msgID string, timestamp time.Time, rec *auth.Rec, miss
 				LastSeen: timestamp,
 				Lang:     s.lang,
 			}); err != nil {
-				log.Println("failed to update device record", err)
+				logger.Log.Println("failed to update device record", err)
 			}
 		}
 	}
@@ -810,7 +810,7 @@ func (s *Session) getValidatedGred(uid types.Uid, authLvl auth.Level, creds []Ms
 }
 
 func (s *Session) get(msg *ClientComMessage) {
-	log.Println("s.get: processing 'get." + msg.Get.What + "'")
+	logger.Log.Println("s.get: processing 'get." + msg.Get.What + "'")
 
 	if s.ver == 0 {
 		s.queueOut(ErrCommandOutOfSequence(msg.Get.Id, msg.Get.Topic, msg.timestamp))
@@ -833,7 +833,7 @@ func (s *Session) get(msg *ClientComMessage) {
 
 	if meta.what == 0 {
 		s.queueOut(ErrMalformed(msg.Get.Id, msg.Get.Topic, msg.timestamp))
-		log.Println("s.get: invalid Get message action: '" + msg.Get.What + "'")
+		logger.Log.Println("s.get: invalid Get message action: '" + msg.Get.What + "'")
 	} else if sub != nil {
 		sub.meta <- meta
 	} else if globals.cluster.isRemoteTopic(expanded) {
@@ -842,7 +842,7 @@ func (s *Session) get(msg *ClientComMessage) {
 			s.queueOut(ErrClusterNodeUnreachable(msg.Get.Id, msg.Get.Topic, msg.timestamp))
 		}
 	} else if meta.what&(constMsgMetaData|constMsgMetaSub|constMsgMetaDel) != 0 {
-		log.Println("s.get: subscribe first to get '" + msg.Get.What + "'")
+		logger.Log.Println("s.get: subscribe first to get '" + msg.Get.What + "'")
 		s.queueOut(ErrPermissionDenied(msg.Get.Id, msg.Get.Topic, msg.timestamp))
 	} else {
 		// Description of a topic not currently subscribed to. Request desc from the hub
@@ -851,7 +851,7 @@ func (s *Session) get(msg *ClientComMessage) {
 }
 
 func (s *Session) set(msg *ClientComMessage) {
-	log.Println("s.set: processing 'set'")
+	logger.Log.Println("s.set: processing 'set'")
 
 	if s.ver == 0 {
 		s.queueOut(ErrCommandOutOfSequence(msg.Set.Id, msg.Set.Topic, msg.timestamp))
@@ -882,7 +882,7 @@ func (s *Session) set(msg *ClientComMessage) {
 		}
 		if meta.what == 0 {
 			s.queueOut(ErrMalformed(msg.Set.Id, msg.Set.Topic, msg.timestamp))
-			log.Println("s.set: nil Set action")
+			logger.Log.Println("s.set: nil Set action")
 		}
 
 		sub.meta <- meta
@@ -892,13 +892,13 @@ func (s *Session) set(msg *ClientComMessage) {
 			s.queueOut(ErrClusterNodeUnreachable(msg.Set.Id, msg.Set.Topic, msg.timestamp))
 		}
 	} else {
-		log.Println("s.set: can Set for subscribed topics only")
+		logger.Log.Println("s.set: can Set for subscribed topics only")
 		s.queueOut(ErrPermissionDenied(msg.Set.Id, msg.Set.Topic, msg.timestamp))
 	}
 }
 
 func (s *Session) del(msg *ClientComMessage) {
-	log.Println("s.del: processing 'del." + msg.Del.What + "'")
+	logger.Log.Println("s.del: processing 'del." + msg.Del.What + "'")
 
 	if s.ver == 0 {
 		s.queueOut(ErrCommandOutOfSequence(msg.Del.Id, msg.Del.Topic, msg.timestamp))
@@ -915,7 +915,7 @@ func (s *Session) del(msg *ClientComMessage) {
 	what := parseMsgClientDel(msg.Del.What)
 	if what == 0 {
 		s.queueOut(ErrMalformed(msg.Del.Id, msg.Del.Topic, msg.timestamp))
-		log.Println("s.del: invalid Del action '" + msg.Del.What + "'")
+		logger.Log.Println("s.del: invalid Del action '" + msg.Del.What + "'")
 	}
 
 	sub := s.getSub(expanded)
@@ -943,7 +943,7 @@ func (s *Session) del(msg *ClientComMessage) {
 	} else {
 		// Must join the topic to delete messages or subscriptions.
 		s.queueOut(ErrAttachFirst(msg.Del.Id, msg.Del.Topic, msg.timestamp))
-		log.Println("s.del: invalid Del action while unsubbed '" + msg.Del.What + "'")
+		logger.Log.Println("s.del: invalid Del action while unsubbed '" + msg.Del.What + "'")
 	}
 }
 

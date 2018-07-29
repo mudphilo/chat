@@ -5,7 +5,7 @@ package ringhash
 import (
 	"encoding/ascii85"
 	"hash/fnv"
-	"log"
+	"github.com/mudphilo/chat/logger"
 	"sort"
 	"strconv"
 )
@@ -127,6 +127,6 @@ func (ring *Ring) Signature() string {
 
 func (ring *Ring) dump() {
 	for _, e := range ring.keys {
-		log.Printf("key: '%s', hash=%d", e.key, e.hash)
+		logger.Log.Printf("key: '%s', hash=%d", e.key, e.hash)
 	}
 }

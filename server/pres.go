@@ -1,7 +1,7 @@
 package main
 
 import (
-	"log"
+	"github.com/mudphilo/chat/logger"
 	"strings"
 
 	"github.com/mudphilo/chat/server/store"
@@ -71,11 +71,11 @@ func (t *Topic) loadContacts(uid types.Uid) error {
 
 	t.perSubs = make(map[string]perSubsData, len(subs))
 	for i := range subs {
-		//log.Printf("Pres loadContacts: topic[%s]: processing sub '%s'", t.name, sub.Topic)
+		//logger.Log.Printf("Pres loadContacts: topic[%s]: processing sub '%s'", t.name, sub.Topic)
 
 		t.addToPerSubs(subs[i].Topic, false, (subs[i].ModeGiven & subs[i].ModeWant).IsPresencer())
 	}
-	//log.Printf("Pres loadContacts: topic[%s]: total cached %d", t.name, len(t.perSubs))
+	//logger.Log.Printf("Pres loadContacts: topic[%s]: total cached %d", t.name, len(t.perSubs))
 	return nil
 }
 
@@ -98,7 +98,7 @@ func (t *Topic) presProcReq(fromUserID, what string, wantReply bool) string {
 	online := &onlineUpdate
 	replyAs := "on"
 
-	//log.Printf("presProcReq: topic[%s]: req from='%s', what=%s, wantReply=%v",
+	//logger.Log.Printf("presProcReq: topic[%s]: req from='%s', what=%s, wantReply=%v",
 	//	t.name, fromUserID, what, wantReply)
 
 	parts := strings.Split(what, "+")
@@ -127,18 +127,18 @@ func (t *Topic) presProcReq(fromUserID, what string, wantReply bool) string {
 		what = ""
 	default:
 		// All other notifications are not processed here
-		// log.Println("done processing what=", what)
+		// logger.Log.Println("done processing what=", what)
 		return what
 	}
 
-	//log.Printf("presProcReq: topic[%s]: req from='%s', what-now=%s, cmd=%s, reqReply(?unkn)=%v",
+	//logger.Log.Printf("presProcReq: topic[%s]: req from='%s', what-now=%s, cmd=%s, reqReply(?unkn)=%v",
 	//	t.name, fromUserID, what, cmd, reqReply)
 
 	if t.cat == types.TopicCatMe {
 
 		// Find if the contact is listed.
 		if psd, ok := t.perSubs[fromUserID]; ok {
-			//log.Printf("presProcReq: topic[%s]: requester %s in list; enabled=%v, online=%v",
+			//logger.Log.Printf("presProcReq: topic[%s]: requester %s in list; enabled=%v, online=%v",
 			//	t.name, fromUserID, psd.enabled, psd.online)
 
 			if cmd == "rem" {
@@ -185,7 +185,7 @@ func (t *Topic) presProcReq(fromUserID, what string, wantReply bool) string {
 			}
 
 		} else if cmd != "rem" {
-			//log.Printf("presProcReq: topic[%s]: requester %s NOT in list, adding, online=%v, cmd='%s'",
+			//logger.Log.Printf("presProcReq: topic[%s]: requester %s NOT in list, adding, online=%v, cmd='%s'",
 			//	t.name, fromUserID, online, cmd)
 
 			// Got request from a new topic. This must be a new subscription. Record it.
@@ -215,11 +215,11 @@ func (t *Topic) presProcReq(fromUserID, what string, wantReply bool) string {
 			Pres:   &MsgServerPres{Topic: "me", What: replyAs, Src: t.name, wantReply: reqReply},
 			rcptto: fromUserID}
 
-		// log.Printf("presProcReq: topic[%s]: replying to %s with own status='%s', wantReply=%v",
+		// logger.Log.Printf("presProcReq: topic[%s]: replying to %s with own status='%s', wantReply=%v",
 		//	t.name, fromUserID, replyAs, reqReply)
 	}
 
-	//log.Println("what is '", what, "'")
+	//logger.Log.Println("what is '", what, "'")
 
 	return what
 }
@@ -237,7 +237,7 @@ func (t *Topic) presUsersOfInterest(what, ua string) {
 				Topic: "me", What: what, Src: t.name, UserAgent: ua, wantReply: (what == "on")},
 			rcptto: topic}
 
-		// log.Printf("Pres A, B, C, D: User'%s' to '%s' what='%s', ua='%s'", t.name, topic, what, ua)
+		// logger.Log.Printf("Pres A, B, C, D: User'%s' to '%s' what='%s', ua='%s'", t.name, topic, what, ua)
 
 	}
 }
@@ -279,7 +279,7 @@ func (t *Topic) presSubsOnline(what, src string, params *presParams,
 			singleUser: pf.singleUser, excludeUser: pf.excludeUser},
 		rcptto: t.name, skipSid: skipSid}
 
-	// log.Printf("Pres K.2, L.3, W.2: topic'%s' what='%s', who='%s', acs='w:%s/g:%s'", t.name, what,
+	// logger.Log.Printf("Pres K.2, L.3, W.2: topic'%s' what='%s', who='%s', acs='w:%s/g:%s'", t.name, what,
 	// 	params.who, params.dWant, params.dGiven)
 
 }
@@ -323,7 +323,7 @@ func (t *Topic) presSubsOffline(what string, params *presParams, filter *presFil
 		skipTopic = t.name
 	}
 
-	//log.Printf("presSubsOffline: topic'%s' what='%s', who='%v'", t.name, what, params)
+	//logger.Log.Printf("presSubsOffline: topic'%s' what='%s', who='%v'", t.name, what, params)
 
 	for uid := range t.perUser {
 		if what != "acs" && !presOfflineFilter(t.perUser[uid].modeGiven&t.perUser[uid].modeWant, filter) {
@@ -421,7 +421,7 @@ func (t *Topic) presSingleUserOffline(uid types.Uid, what string, params *presPa
 			rcptto: user, skipSid: skipSid}
 	}
 
-	// log.Printf("Pres J.1, K, M.1, N: topic'%s' what='%s', who='%s'", t.name, what, who.UserId())
+	// logger.Log.Printf("Pres J.1, K, M.1, N: topic'%s' what='%s', who='%s'", t.name, what, who.UserId())
 }
 
 // Same as above, but the topic is offline (not loaded from the DB)
@@ -470,7 +470,7 @@ func (t *Topic) presPubMessageCount(uid types.Uid, recv, read int, skip string) 
 // Cases V.1, V.2
 func (t *Topic) presPubMessageDelete(uid types.Uid, delID int, list []MsgDelRange, skip string) {
 	if len(list) == 0 && delID <= 0 {
-		log.Printf("Case V.1, V.2: topic[%s] invalid request - missing payload", t.name)
+		logger.Log.Printf("Case V.1, V.2: topic[%s] invalid request - missing payload", t.name)
 		return
 	}
 

@@ -13,7 +13,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
-	"log"
+	"github.com/mudphilo/chat/logger"
 	"net"
 	"net/http"
 	"os"
@@ -92,7 +92,7 @@ func listenAndServe(addr string, mux *http.ServeMux, tlsEnabled bool, jsconfig s
 
 			server.TLSConfig.GetCertificate = certManager.GetCertificate
 			if tlsConfig.CertFile != "" || tlsConfig.KeyFile != "" {
-				log.Println("HTTP server: using autocert, static cert and key files are ignored")
+				logger.Log.Println("HTTP server: using autocert, static cert and key files are ignored")
 				tlsConfig.CertFile = ""
 				tlsConfig.KeyFile = ""
 			}
@@ -105,24 +105,24 @@ func listenAndServe(addr string, mux *http.ServeMux, tlsEnabled bool, jsconfig s
 		var err error
 		if tlsEnabled || tlsConfig.Enabled {
 			if tlsConfig.RedirectHTTP != "" {
-				log.Printf("Redirecting connections from HTTP at [%s] to HTTPS at [%s]",
+				logger.Log.Printf("Redirecting connections from HTTP at [%s] to HTTPS at [%s]",
 					tlsConfig.RedirectHTTP, server.Addr)
 
 				// This is a second HTTP server listenning on a different port.
 				go http.ListenAndServe(tlsConfig.RedirectHTTP, tlsRedirect(addr))
 			}
 
-			log.Printf("Listening for client HTTPS connections on [%s]", server.Addr)
+			logger.Log.Printf("Listening for client HTTPS connections on [%s]", server.Addr)
 			err = server.ListenAndServeTLS(tlsConfig.CertFile, tlsConfig.KeyFile)
 		} else {
-			log.Printf("Listening for client HTTP connections on [%s]", server.Addr)
+			logger.Log.Printf("Listening for client HTTP connections on [%s]", server.Addr)
 			err = server.ListenAndServe()
 		}
 		if err != nil {
 			if shuttingDown {
-				log.Println("HTTP server: stopped")
+				logger.Log.Println("HTTP server: stopped")
 			} else {
-				log.Println("HTTP server: failed", err)
+				logger.Log.Println("HTTP server: failed", err)
 			}
 		}
 		httpdone <- true
@@ -182,7 +182,7 @@ func signalHandler() <-chan bool {
 	go func() {
 		// Wait for a signal. Don't care which signal it is
 		sig := <-signchan
-		log.Printf("Signal received: '%s', shutting down", sig)
+		logger.Log.Printf("Signal received: '%s', shutting down", sig)
 		stop <- true
 	}()
 
@@ -343,7 +343,7 @@ func authHttpRequest(req *http.Request) (types.Uid, []byte, error) {
 			}
 			uid = rec.Uid
 		} else {
-			log.Println("fileUpload: auth data is present but handler is not found", authMethod)
+			logger.Log.Println("fileUpload: auth data is present but handler is not found", authMethod)
 		}
 	} else {
 		// Find the session, make sure it's appropriately authenticated.

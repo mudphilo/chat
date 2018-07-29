@@ -11,7 +11,7 @@ package main
 
 import (
 	"io"
-	"log"
+	"github.com/mudphilo/chat/logger"
 	"net"
 
 	"github.com/mudphilo/chat/pbx"
@@ -32,7 +32,7 @@ func (*grpcNodeServer) MessageLoop(stream pbx.Node_MessageLoopServer) error {
 	sess := globals.sessionStore.Create(stream, "")
 
 	defer func() {
-		log.Println("grpc.MessageLoop - stop")
+		logger.Log.Println("grpc.MessageLoop - stop")
 		sess.closeGrpc()
 		sess.cleanUp()
 	}()
@@ -47,7 +47,7 @@ func (*grpcNodeServer) MessageLoop(stream pbx.Node_MessageLoopServer) error {
 		if err != nil {
 			return err
 		}
-		log.Println(in.String())
+		logger.Log.Println(in.String())
 		sess.dispatch(pbCliDeserialize(in))
 	}
 
@@ -68,7 +68,7 @@ func (sess *Session) writeGrpcLoop() {
 				return
 			}
 			if err := grpcWrite(sess, msg); err != nil {
-				log.Println("sess.writeLoop: " + err.Error())
+				logger.Log.Println("sess.writeLoop: " + err.Error())
 				return
 			}
 		case msg := <-sess.stop:
@@ -88,7 +88,7 @@ func grpcWrite(sess *Session, msg interface{}) error {
 	out := sess.grpcnode
 	if out != nil {
 		// Will panic if format is wrong. This is an intentional panic.
-		log.Println("grpc: writing message to stream", msg)
+		logger.Log.Println("grpc: writing message to stream", msg)
 		return out.Send(msg.(*pbx.ServerMsg))
 	}
 	return nil
@@ -106,11 +106,11 @@ func serveGrpc(addr string) (*grpc.Server, error) {
 
 	srv := grpc.NewServer()
 	pbx.RegisterNodeServer(srv, &grpcNodeServer{})
-	log.Printf("gRPC server is registered at [%s]", addr)
+	logger.Log.Printf("gRPC server is registered at [%s]", addr)
 
 	go func() {
 		if err := srv.Serve(lis); err != nil {
-			log.Println("gRPC server failed:", err)
+			logger.Log.Println("gRPC server failed:", err)
 		}
 	}()
 

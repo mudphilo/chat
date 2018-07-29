@@ -10,7 +10,7 @@ package main
 
 import (
 	"errors"
-	"log"
+	"github.com/mudphilo/chat/logger"
 	"sort"
 	"sync/atomic"
 	"time"
@@ -173,7 +173,7 @@ var nilPresFilters = &presFilters{}
 
 func (t *Topic) run(hub *Hub) {
 
-	log.Printf("Topic started: '%s'", t.name)
+	logger.Log.Printf("Topic started: '%s'", t.name)
 
 	// TODO(gene): read keepalive value from the command line
 	keepAlive := idleTopicTimeout
@@ -218,7 +218,7 @@ func (t *Topic) run(hub *Hub) {
 						// Failed to subscribe, the topic is still inactive
 						killTimer.Reset(keepAlive)
 					}
-					log.Printf("topic[%s] subscription failed %v", t.name, err)
+					logger.Log.Printf("topic[%s] subscription failed %v", t.name, err)
 				}
 			}
 
@@ -233,7 +233,7 @@ func (t *Topic) run(hub *Hub) {
 			} else if leave.unsub {
 				// User wants to leave and unsubscribe.
 				if err := t.replyLeaveUnsub(hub, leave.sess, leave.reqID); err != nil {
-					log.Println("failed to unsub", err)
+					logger.Log.Println("failed to unsub", err)
 					continue
 				}
 
@@ -258,7 +258,7 @@ func (t *Topic) run(hub *Hub) {
 					}
 					// Update user's last online timestamp & user agent
 					if err := store.Users.UpdateLastSeen(mrs.uid, mrs.userAgent, now); err != nil {
-						log.Println(err)
+						logger.Log.Println(err)
 					}
 				case types.TopicCatFnd:
 					// Remove ephemeral query.
@@ -317,7 +317,7 @@ func (t *Topic) run(hub *Hub) {
 					Head:      msg.Data.Head,
 					Content:   msg.Data.Content}); err != nil {
 
-					log.Printf("topic[%s]: failed to save message: %v", t.name, err)
+					logger.Log.Printf("topic[%s]: failed to save message: %v", t.name, err)
 					msg.sessFrom.queueOut(ErrUnknown(msg.id, t.original(msg.sessFrom.uid), msg.timestamp))
 
 					continue
@@ -405,7 +405,7 @@ func (t *Topic) run(hub *Hub) {
 							"ReadSeqId": pud.readID},
 						false); err != nil {
 
-						log.Printf("topic[%s]: failed to update SeqRead/Recv counter: %v", t.name, err)
+						logger.Log.Printf("topic[%s]: failed to update SeqRead/Recv counter: %v", t.name, err)
 						continue
 					}
 
@@ -480,7 +480,7 @@ func (t *Topic) run(hub *Hub) {
 							}
 						}
 					} else {
-						log.Printf("topic[%s]: connection stuck, detaching", t.name)
+						logger.Log.Printf("topic[%s]: connection stuck, detaching", t.name)
 						t.unreg <- &sessionLeave{sess: sess, unsub: false}
 					}
 				}
@@ -491,11 +491,11 @@ func (t *Topic) run(hub *Hub) {
 
 			} else {
 				// TODO(gene): remove this
-				log.Panic("topic: wrong message type for broadcasting", t.name)
+				logger.Log.Panic("topic: wrong message type for broadcasting", t.name)
 			}
 
 		case meta := <-t.meta:
-			// log.Printf("topic[%s]: got meta message '%#+v' %x", t.name, meta, meta.what)
+			// logger.Log.Printf("topic[%s]: got meta message '%#+v' %x", t.name, meta, meta.what)
 
 			// Request to get/set topic metadata
 			switch {
@@ -503,22 +503,22 @@ func (t *Topic) run(hub *Hub) {
 				// Get request
 				if meta.what&constMsgMetaDesc != 0 {
 					if err := t.replyGetDesc(meta.sess, meta.pkt.Get.Id, "", meta.pkt.Get.Desc); err != nil {
-						log.Printf("topic[%s] meta.Get.Desc failed: %v", t.name, err)
+						logger.Log.Printf("topic[%s] meta.Get.Desc failed: %v", t.name, err)
 					}
 				}
 				if meta.what&constMsgMetaSub != 0 {
 					if err := t.replyGetSub(meta.sess, meta.pkt.Get.Id, meta.pkt.Get.Sub); err != nil {
-						log.Printf("topic[%s] meta.Get.Sub failed: %v", t.name, err)
+						logger.Log.Printf("topic[%s] meta.Get.Sub failed: %v", t.name, err)
 					}
 				}
 				if meta.what&constMsgMetaData != 0 {
 					if err := t.replyGetData(meta.sess, meta.pkt.Get.Id, meta.pkt.Get.Data); err != nil {
-						log.Printf("topic[%s] meta.Get.Data failed: %v", t.name, err)
+						logger.Log.Printf("topic[%s] meta.Get.Data failed: %v", t.name, err)
 					}
 				}
 				if meta.what&constMsgMetaDel != 0 {
 					if err := t.replyGetDel(meta.sess, meta.pkt.Get.Id, meta.pkt.Get.Del); err != nil {
-						log.Printf("topic[%s] meta.Get.Del failed: %v", t.name, err)
+						logger.Log.Printf("topic[%s] meta.Get.Del failed: %v", t.name, err)
 					}
 				}
 
@@ -529,17 +529,17 @@ func (t *Topic) run(hub *Hub) {
 						// Notify plugins of the update
 						pluginTopic(t, plgActUpd)
 					} else {
-						log.Printf("topic[%s] meta.Set.Desc failed: %v", t.name, err)
+						logger.Log.Printf("topic[%s] meta.Set.Desc failed: %v", t.name, err)
 					}
 				}
 				if meta.what&constMsgMetaSub != 0 {
 					if err := t.replySetSub(hub, meta.sess, meta.pkt.Set); err != nil {
-						log.Printf("topic[%s] meta.Set.Sub failed: %v", t.name, err)
+						logger.Log.Printf("topic[%s] meta.Set.Sub failed: %v", t.name, err)
 					}
 				}
 				if meta.what&constMsgMetaTags != 0 {
 					if err := t.replySetTags(meta.sess, meta.pkt.Set); err != nil {
-						log.Printf("topic[%s] meta.Set.Tags failed: %v", t.name, err)
+						logger.Log.Printf("topic[%s] meta.Set.Tags failed: %v", t.name, err)
 					}
 				}
 
@@ -556,7 +556,7 @@ func (t *Topic) run(hub *Hub) {
 				}
 
 				if err != nil {
-					log.Printf("topic[%s] meta.Del failed: %v", t.name, err)
+					logger.Log.Printf("topic[%s] meta.Del failed: %v", t.name, err)
 				}
 			}
 		case ua := <-t.uaChange:
@@ -633,7 +633,7 @@ func (t *Topic) handleSubscription(h *Hub, sreg *sessionJoin) error {
 		// Notify user's contact that the given user is online now.
 		if t.cat == types.TopicCatMe {
 			if err := t.loadContacts(sreg.sess.uid); err != nil {
-				log.Println("topic: failed to load contacts", t.name, err.Error())
+				logger.Log.Println("topic: failed to load contacts", t.name, err.Error())
 			}
 			// User online: notify users of interest
 			t.presUsersOfInterest("on", sreg.sess.userAgent)
@@ -695,28 +695,28 @@ func (t *Topic) handleSubscription(h *Hub, sreg *sessionJoin) error {
 	if getWhat&constMsgMetaSub != 0 {
 		// Send get.sub response as a separate {meta} packet
 		if err := t.replyGetSub(sreg.sess, sreg.pkt.Id, sreg.pkt.Get.Sub); err != nil {
-			log.Printf("topic[%s] handleSubscription Get.Sub failed: %v", t.name, err)
+			logger.Log.Printf("topic[%s] handleSubscription Get.Sub failed: %v", t.name, err)
 		}
 	}
 
 	if getWhat&constMsgMetaTags != 0 {
 		// Send get.tags response as a separate {meta} packet
 		if err := t.replyGetTags(sreg.sess, sreg.pkt.Id); err != nil {
-			log.Printf("topic[%s] handleSubscription Get.Tags failed: %v", t.name, err)
+			logger.Log.Printf("topic[%s] handleSubscription Get.Tags failed: %v", t.name, err)
 		}
 	}
 
 	if getWhat&constMsgMetaData != 0 {
 		// Send get.data response as {data} packets
 		if err := t.replyGetData(sreg.sess, sreg.pkt.Id, sreg.pkt.Get.Data); err != nil {
-			log.Printf("topic[%s] handleSubscription Get.Data failed: %v", t.name, err)
+			logger.Log.Printf("topic[%s] handleSubscription Get.Data failed: %v", t.name, err)
 		}
 	}
 
 	if getWhat&constMsgMetaDel != 0 {
 		// Send get.del response as a separate {meta} packet
 		if err := t.replyGetDel(sreg.sess, sreg.pkt.Id, sreg.pkt.Get.Del); err != nil {
-			log.Printf("topic[%s] handleSubscription Get.Del failed: %v", t.name, err)
+			logger.Log.Printf("topic[%s] handleSubscription Get.Del failed: %v", t.name, err)
 		}
 	}
 	return nil
@@ -775,7 +775,7 @@ func (t *Topic) subCommonReply(h *Hub, sreg *sessionJoin, sendDesc bool) error {
 			tmpName = sreg.pkt.Topic
 		}
 		if err := t.replyGetDesc(sreg.sess, sreg.pkt.Id, tmpName, sreg.pkt.Get.Desc); err != nil {
-			log.Printf("topic[%s] subCommonReply Get.Desc failed: %v", t.name, err)
+			logger.Log.Printf("topic[%s] subCommonReply Get.Desc failed: %v", t.name, err)
 		}
 	}
 
@@ -1003,7 +1003,7 @@ func (t *Topic) requestSub(h *Hub, sess *Session, pktID, want string, private in
 	if (userData.modeWant & userData.modeGiven).IsPresencer() &&
 		(!existingSub || !(oldWant & oldGiven).IsPresencer()) {
 		// Notify subscriber of topic's online status.
-		// log.Printf("topic[%s] sending ?unkn+en to me[%s]", t.name, sess.uid.String())
+		// logger.Log.Printf("topic[%s] sending ?unkn+en to me[%s]", t.name, sess.uid.String())
 		t.presSingleUserOffline(sess.uid, "?unkn+en", nilPresParams, "", false)
 	}
 
@@ -1043,7 +1043,7 @@ func (t *Topic) requestSub(h *Hub, sess *Session, pktID, want string, private in
 // B. Sharer or Approver is re-inviting another user (adjusting modeGiven, modeWant is still Unset)
 // C. Approver is changing modeGiven for another user, modeWant != Unset
 func (t *Topic) approveSub(h *Hub, sess *Session, target types.Uid, set *MsgClientSet) error {
-	log.Printf("approveSub, session uid=%s, target uid=%s", sess.uid.String(), target.String())
+	logger.Log.Printf("approveSub, session uid=%s, target uid=%s", sess.uid.String(), target.String())
 
 	now := types.TimeNow()
 
@@ -2086,7 +2086,7 @@ func (t *Topic) replyLeaveUnsub(h *Hub, sess *Session, id string) error {
 
 // evictUser evicts given user's sessions from the topic and clears user's cached data, if requested
 func (t *Topic) evictUser(uid types.Uid, unsub bool, skip string) {
-	log.Println("evictUser", uid, unsub, skip)
+	logger.Log.Println("evictUser", uid, unsub, skip)
 
 	now := types.TimeNow()
 

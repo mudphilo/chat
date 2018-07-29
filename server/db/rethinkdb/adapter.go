@@ -406,7 +406,7 @@ func (a *adapter) AuthGetRecord(uid t.Uid, scheme string) (string, auth.Level, [
 		return "", 0, nil, time.Time{}, err
 	}
 
-	// log.Println("loggin in user Id=", user.Uid(), user.Id)
+	// logger.Log.Println("loggin in user Id=", user.Uid(), user.Id)
 	return record.Unique, record.AuthLvl, record.Secret, record.Expires, nil
 }
 
@@ -430,7 +430,7 @@ func (a *adapter) AuthGetUniqueRecord(unique string) (t.Uid, auth.Level, []byte,
 		return t.ZeroUid, 0, nil, time.Time{}, err
 	}
 
-	// log.Println("loggin in user Id=", user.Uid(), user.Id)
+	// logger.Log.Println("loggin in user Id=", user.Uid(), user.Id)
 	return t.ParseUid(record.Userid), record.AuthLvl, record.Secret, record.Expires, nil
 }
 
@@ -575,7 +575,7 @@ func (a *adapter) TopicsForUser(uid t.Uid, keepDeleted bool, opts *t.QueryOpt) (
 	}
 	q = q.Limit(limit)
 
-	//log.Printf("RethinkDbAdapter.TopicsForUser q: %+v", q)
+	//logger.Log.Printf("RethinkDbAdapter.TopicsForUser q: %+v", q)
 	rows, err := q.Run(a.conn)
 	if err != nil {
 		return nil, err
@@ -687,7 +687,7 @@ func (a *adapter) UsersForTopic(topic string, keepDeleted bool, opts *t.QueryOpt
 		}
 	}
 	q = q.Limit(limit)
-	//log.Printf("RethinkDbAdapter.UsersForTopic q: %+v", q)
+	//logger.Log.Printf("RethinkDbAdapter.UsersForTopic q: %+v", q)
 	rows, err := q.Run(a.conn)
 	if err != nil {
 		return nil, err
@@ -703,7 +703,7 @@ func (a *adapter) UsersForTopic(topic string, keepDeleted bool, opts *t.QueryOpt
 		usrq = append(usrq, sub.User)
 	}
 
-	//log.Printf("RethinkDbAdapter.UsersForTopic usrq: %+v, usrq)
+	//logger.Log.Printf("RethinkDbAdapter.UsersForTopic usrq: %+v, usrq)
 	if len(usrq) > 0 {
 		subs = make([]t.Subscription, 0, len(usrq))
 
@@ -721,7 +721,7 @@ func (a *adapter) UsersForTopic(topic string, keepDeleted bool, opts *t.QueryOpt
 				subs = append(subs, sub)
 			}
 		}
-		//log.Printf("RethinkDbAdapter.UsersForTopic users: %+v", subs)
+		//logger.Log.Printf("RethinkDbAdapter.UsersForTopic users: %+v", subs)
 	}
 
 	return subs, nil
@@ -865,7 +865,7 @@ func (a *adapter) SubsForTopic(topic string, keepDeleted bool, opts *t.QueryOpt)
 		}
 	}
 	q = q.Limit(limit)
-	//log.Println("Loading subscription q=", q)
+	//logger.Log.Println("Loading subscription q=", q)
 
 	rows, err := q.Run(a.conn)
 	if err != nil {
@@ -876,7 +876,7 @@ func (a *adapter) SubsForTopic(topic string, keepDeleted bool, opts *t.QueryOpt)
 	var ss t.Subscription
 	for rows.Next(&ss) {
 		subs = append(subs, ss)
-		//log.Printf("SubsForTopic: loaded sub %#+v", ss)
+		//logger.Log.Printf("SubsForTopic: loaded sub %#+v", ss)
 	}
 
 	return subs, rows.Err()
@@ -1410,7 +1410,7 @@ func (a *adapter) DeviceDelete(uid t.Uid, deviceID string) error {
 
 // Credential management
 func (a *adapter) CredAdd(cred *t.Credential) error {
-	// log.Println("saving credential", cred)
+	// logger.Log.Println("saving credential", cred)
 
 	cred.Id = cred.Method + ":" + cred.Value
 	if !cred.Done {

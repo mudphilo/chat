@@ -11,7 +11,7 @@ DB=$GOPATH/src/github.com/mudphilo/chat/tinode-db
 
 DB_CONFIG=$GOPATH/src/github.com/mudphilo/chat/tinode-db/tinode.conf
 DB_DATA=$GOPATH/src/github.com/mudphilo/chat/tinode-db/data.json
-LOGFILE=/var/log/tinode/log.log
+LOGFILE=/var/log/tinode/log1.log
 
 cd $GOPATH
 

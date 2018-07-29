@@ -10,7 +10,7 @@ package main
 
 import (
 	"expvar"
-	"log"
+	"github.com/mudphilo/chat/logger"
 	"strings"
 	"sync"
 	"time"
@@ -156,7 +156,7 @@ func (h *Hub) run() {
 					select {
 					case dst.broadcast <- msg:
 					default:
-						log.Printf("hub: topic's broadcast queue is full '%s'", dst.name)
+						logger.Log.Printf("hub: topic's broadcast queue is full '%s'", dst.name)
 					}
 				}
 			} else if msg.Pres == nil {
@@ -165,13 +165,13 @@ func (h *Hub) run() {
 
 				// TODO(gene): validate topic name, discarding invalid topics
 
-				log.Printf("Hub. Topic[%s] is unknown or offline", msg.rcptto)
+				logger.Log.Printf("Hub. Topic[%s] is unknown or offline", msg.rcptto)
 
 				msg.sessFrom.queueOut(NoErrAccepted(msg.id, msg.rcptto, types.TimeNow()))
 			}
 
 		case meta := <-h.meta:
-			log.Println("hub.meta: got message")
+			logger.Log.Println("hub.meta: got message")
 			// Request for topic info from a user who is not subscribed to the topic
 			if dst := h.topicGet(meta.topic); dst != nil {
 				// If topic is already in memory, pass request to topic
@@ -215,7 +215,7 @@ func (h *Hub) run() {
 				<-topicsdone
 			}
 
-			log.Printf("Hub shutdown completed with %d topics", topicCount)
+			logger.Log.Printf("Hub shutdown completed with %d topics", topicCount)
 
 			// let the main goroutine know we are done with the cleanup
 			hubdone <- true
@@ -248,7 +248,7 @@ func topicInit(sreg *sessionJoin, h *Hub) {
 	parseMode := func(modeString string, defaultMode types.AccessMode) types.AccessMode {
 		mode := defaultMode
 		if err := mode.UnmarshalText([]byte(modeString)); err != nil {
-			log.Println("hub: invalid access mode for topic[" + t.xoriginal + "]: '" + modeString + "'")
+			logger.Log.Println("hub: invalid access mode for topic[" + t.xoriginal + "]: '" + modeString + "'")
 		}
 
 		return mode
@@ -263,13 +263,13 @@ func topicInit(sreg *sessionJoin, h *Hub) {
 
 		user, err := store.Users.Get(sreg.sess.uid)
 		if err != nil {
-			log.Println("hub: cannot load user object for 'me'='" + t.name + "' (" + err.Error() + ")")
+			logger.Log.Println("hub: cannot load user object for 'me'='" + t.name + "' (" + err.Error() + ")")
 			// Log out the session
 			sreg.sess.uid = types.ZeroUid
 			sreg.sess.queueOut(ErrUnknown(sreg.pkt.Id, t.xoriginal, timestamp))
 			return
 		} else if user == nil {
-			log.Println("hub: user's account unexpectedly not found (deleted?)")
+			logger.Log.Println("hub: user's account unexpectedly not found (deleted?)")
 			// Log out the session
 			sreg.sess.uid = types.ZeroUid
 			sreg.sess.queueOut(ErrUserNotFound(sreg.pkt.Id, t.xoriginal, timestamp))
@@ -281,7 +281,7 @@ func topicInit(sreg *sessionJoin, h *Hub) {
 		t.accessAnon = user.Access.Anon
 
 		if err = t.loadSubscribers(); err != nil {
-			log.Println("hub: cannot load subscribers for '" + t.name + "' (" + err.Error() + ")")
+			logger.Log.Println("hub: cannot load subscribers for '" + t.name + "' (" + err.Error() + ")")
 			sreg.sess.queueOut(ErrUnknown(sreg.pkt.Id, t.xoriginal, timestamp))
 			return
 		}
@@ -308,11 +308,11 @@ func topicInit(sreg *sessionJoin, h *Hub) {
 
 		user, err := store.Users.Get(sreg.sess.uid)
 		if err != nil {
-			log.Println("hub: cannot load user object for 'fnd'='" + t.name + "' (" + err.Error() + ")")
+			logger.Log.Println("hub: cannot load user object for 'fnd'='" + t.name + "' (" + err.Error() + ")")
 			sreg.sess.queueOut(ErrUnknown(sreg.pkt.Id, t.xoriginal, timestamp))
 			return
 		} else if user == nil {
-			log.Println("hub: user's account unexpectedly not found (deleted?)")
+			logger.Log.Println("hub: user's account unexpectedly not found (deleted?)")
 			sreg.sess.queueOut(ErrUserNotFound(sreg.pkt.Id, t.xoriginal, timestamp))
 			return
 		}
@@ -325,7 +325,7 @@ func topicInit(sreg *sessionJoin, h *Hub) {
 		t.tags = user.Tags
 
 		if err = t.loadSubscribers(); err != nil {
-			log.Println("hub: cannot load subscribers for '" + t.name + "' (" + err.Error() + ")")
+			logger.Log.Println("hub: cannot load subscribers for '" + t.name + "' (" + err.Error() + ")")
 			sreg.sess.queueOut(ErrUnknown(sreg.pkt.Id, t.xoriginal, timestamp))
 			return
 		}
@@ -352,7 +352,7 @@ func topicInit(sreg *sessionJoin, h *Hub) {
 		// Check if the topic already exists
 		stopic, err := store.Topics.Get(t.name)
 		if err != nil {
-			log.Println("hub: error while loading topic '" + t.name + "' (" + err.Error() + ")")
+			logger.Log.Println("hub: error while loading topic '" + t.name + "' (" + err.Error() + ")")
 			sreg.sess.queueOut(ErrUnknown(sreg.pkt.Id, t.xoriginal, timestamp))
 			return
 		}
@@ -362,14 +362,14 @@ func topicInit(sreg *sessionJoin, h *Hub) {
 		if stopic != nil {
 			// Subs already have Public swapped
 			if subs, err = store.Topics.GetSubs(t.name, nil); err != nil {
-				log.Println("hub: cannot load subscritions for '" + t.name + "' (" + err.Error() + ")")
+				logger.Log.Println("hub: cannot load subscritions for '" + t.name + "' (" + err.Error() + ")")
 				sreg.sess.queueOut(ErrUnknown(sreg.pkt.Id, t.xoriginal, timestamp))
 				return
 			}
 
 			// Case 3, fail
 			if subs == nil || len(subs) == 0 {
-				log.Println("hub: missing both subscriptions for '" + t.name + "' (SHOULD NEVER HAPPEN!)")
+				logger.Log.Println("hub: missing both subscriptions for '" + t.name + "' (SHOULD NEVER HAPPEN!)")
 				sreg.sess.queueOut(ErrUnknown(sreg.pkt.Id, t.xoriginal, timestamp))
 				return
 			}
@@ -394,7 +394,7 @@ func topicInit(sreg *sessionJoin, h *Hub) {
 		if stopic != nil && len(subs) == 2 {
 			// Case 4.
 
-			log.Println("hub: existing p2p topic")
+			logger.Log.Println("hub: existing p2p topic")
 
 			for i := 0; i < 2; i++ {
 				uid := types.ParseUid(subs[i].User)
@@ -424,18 +424,18 @@ func topicInit(sreg *sessionJoin, h *Hub) {
 			userID2 := types.ParseUserId(t.xoriginal)
 			// User index: u1 - requester, u2 - the other user
 
-			log.Println("hub: creating new p2p topic", userID1.String(), userID2.String())
+			logger.Log.Println("hub: creating new p2p topic", userID1.String(), userID2.String())
 
 			var u1, u2 int
 			users, err := store.Users.GetAll(userID1, userID2)
 			if err != nil {
-				log.Println("hub: failed to load users for '" + t.name + "' (" + err.Error() + ")")
+				logger.Log.Println("hub: failed to load users for '" + t.name + "' (" + err.Error() + ")")
 				sreg.sess.queueOut(ErrUnknown(sreg.pkt.Id, t.xoriginal, timestamp))
 				return
 			}
 			if users == nil || len(users) != 2 {
 				// Invited user does not exist
-				log.Println("hub: missing user for '" + t.name + "'")
+				logger.Log.Println("hub: missing user for '" + t.name + "'")
 				sreg.sess.queueOut(ErrUserNotFound(sreg.pkt.Id, t.xoriginal, timestamp))
 				return
 			}
@@ -459,7 +459,7 @@ func topicInit(sreg *sessionJoin, h *Hub) {
 					sub2 = &subs[0]
 					user1only = true
 				}
-				log.Println("hub: one subscription already exists", subs[0].User, user1only)
+				logger.Log.Println("hub: one subscription already exists", subs[0].User, user1only)
 			}
 
 			// Other user's subscription is missing
@@ -483,7 +483,7 @@ func topicInit(sreg *sessionJoin, h *Hub) {
 				// Swap Public to match swapped Public in subs returned from store.Topics.GetSubs
 				sub2.SetPublic(users[u1].Public)
 
-				log.Println("hub: created second subscription")
+				logger.Log.Println("hub: created second subscription")
 			}
 
 			// Requester's subscription is missing:
@@ -508,7 +508,7 @@ func topicInit(sreg *sessionJoin, h *Hub) {
 
 						if uid != sreg.sess.uid {
 							// Report the error and ignore the value
-							log.Println("hub: setting mode for another user is not supported '" + t.name + "'")
+							logger.Log.Println("hub: setting mode for another user is not supported '" + t.name + "'")
 						} else {
 							// user1 is setting non-default modeWant
 							userData.modeWant = parseMode(sreg.pkt.Set.Sub.Mode, userData.modeWant) &
@@ -537,7 +537,7 @@ func topicInit(sreg *sessionJoin, h *Hub) {
 				// Swap Public to match swapped Public in subs returned from store.Topics.GetSubs
 				sub1.SetPublic(users[u2].Public)
 
-				log.Println("hub: created first subscription")
+				logger.Log.Println("hub: created first subscription")
 			}
 
 			if !user1only {
@@ -551,7 +551,7 @@ func topicInit(sreg *sessionJoin, h *Hub) {
 			// Create everything
 			if stopic == nil {
 				if err = store.Topics.CreateP2P(sub1, sub2); err != nil {
-					log.Println("hub: databse error in creating subscriptions '" + t.name + "' (" + err.Error() + ")")
+					logger.Log.Println("hub: databse error in creating subscriptions '" + t.name + "' (" + err.Error() + ")")
 					sreg.sess.queueOut(ErrUnknown(sreg.pkt.Id, t.xoriginal, timestamp))
 					return
 				}
@@ -572,7 +572,7 @@ func topicInit(sreg *sessionJoin, h *Hub) {
 					subToMake = sub2
 				}
 				if err = store.Subs.Create(subToMake); err != nil {
-					log.Println("hub: databse error in re-subscribing user '" + t.name + "' (" + err.Error() + ")")
+					logger.Log.Println("hub: databse error in re-subscribing user '" + t.name + "' (" + err.Error() + ")")
 					sreg.sess.queueOut(ErrUnknown(sreg.pkt.Id, t.xoriginal, timestamp))
 					return
 				}
@@ -600,7 +600,7 @@ func topicInit(sreg *sessionJoin, h *Hub) {
 				recvID:    sub2.RecvSeqId,
 			}
 
-			log.Println("hub: marking request as 'topic created'")
+			logger.Log.Println("hub: marking request as 'topic created'")
 			sreg.created = true
 		}
 
@@ -650,9 +650,9 @@ func topicInit(sreg *sessionJoin, h *Hub) {
 						} else {
 							t.accessAnon = anonMode
 						}
-						log.Println("hub: invalid access mode for topic '" + t.name + "': '" + err.Error() + "'")
+						logger.Log.Println("hub: invalid access mode for topic '" + t.name + "': '" + err.Error() + "'")
 					} else if authMode.IsOwner() || anonMode.IsOwner() {
-						log.Println("hub: OWNER default access in topic '" + t.name)
+						logger.Log.Println("hub: OWNER default access in topic '" + t.name)
 						t.accessAuth, t.accessAnon = authMode & ^types.ModeOwner, anonMode & ^types.ModeOwner
 					} else {
 						t.accessAuth, t.accessAnon = authMode, anonMode
@@ -669,7 +669,7 @@ func topicInit(sreg *sessionJoin, h *Hub) {
 
 			tags = normalizeTags(sreg.pkt.Set.Tags)
 			if !restrictedTagsEqual(tags, nil, globals.immutableTagNS) {
-				log.Println("hub: attempt to directly set restricted tags")
+				logger.Log.Println("hub: attempt to directly set restricted tags")
 				sreg.sess.queueOut(ErrPermissionDenied(sreg.pkt.Id, t.xoriginal, timestamp))
 				return
 			}
@@ -695,7 +695,7 @@ func topicInit(sreg *sessionJoin, h *Hub) {
 		stopic.GiveAccess(t.owner, userData.modeWant, userData.modeGiven)
 		err := store.Topics.Create(stopic, t.owner, t.perUser[t.owner].private)
 		if err != nil {
-			log.Println("hub: cannot save new topic '" + t.name + "' (" + err.Error() + ")")
+			logger.Log.Println("hub: cannot save new topic '" + t.name + "' (" + err.Error() + ")")
 			// Send the error on the original "newWHATEVER" topic.
 			sreg.sess.queueOut(ErrUnknown(sreg.pkt.Id, t.xoriginal, timestamp))
 			return
@@ -710,17 +710,17 @@ func topicInit(sreg *sessionJoin, h *Hub) {
 		// TODO(gene): check and validate topic name
 		stopic, err := store.Topics.Get(t.name)
 		if err != nil {
-			log.Println("hub: error while loading topic '" + t.name + "' (" + err.Error() + ")")
+			logger.Log.Println("hub: error while loading topic '" + t.name + "' (" + err.Error() + ")")
 			sreg.sess.queueOut(ErrUnknown(sreg.pkt.Id, t.xoriginal, timestamp))
 			return
 		} else if stopic == nil {
-			log.Println("hub: topic '" + t.name + "' does not exist")
+			logger.Log.Println("hub: topic '" + t.name + "' does not exist")
 			sreg.sess.queueOut(ErrTopicNotFound(sreg.pkt.Id, t.xoriginal, timestamp))
 			return
 		}
 
 		if err = t.loadSubscribers(); err != nil {
-			log.Println("hub: cannot load subscribers for '" + t.name + "' (" + err.Error() + ")")
+			logger.Log.Println("hub: cannot load subscribers for '" + t.name + "' (" + err.Error() + ")")
 			sreg.sess.queueOut(ErrUnknown(sreg.pkt.Id, t.xoriginal, timestamp))
 			return
 		}
@@ -752,7 +752,7 @@ func topicInit(sreg *sessionJoin, h *Hub) {
 		return
 	}
 
-	log.Println("hub: topic created or loaded: " + t.name)
+	logger.Log.Println("hub: topic created or loaded: " + t.name)
 
 	h.topicPut(t.name, t)
 	h.topicsLive.Add(1)
@@ -836,7 +836,7 @@ func (h *Hub) topicUnreg(sess *Session, topic string, msg *MsgClientDel, reason 
 
 				if err := store.Topics.Delete(topic); err != nil {
 					t.resume()
-					log.Println("topicUnreg failed to delete online topic:", err)
+					logger.Log.Println("topicUnreg failed to delete online topic:", err)
 					sess.queueOut(ErrUnknown(msg.Id, msg.Topic, now))
 					return
 				}
@@ -869,7 +869,7 @@ func (h *Hub) topicUnreg(sess *Session, topic string, msg *MsgClientDel, reason 
 			// Get all subscribers: we have to notify them all.
 			subs, err := store.Topics.GetSubs(topic, nil)
 			if err != nil {
-				log.Println("topicUnreg failed to load subscribers:", err)
+				logger.Log.Println("topicUnreg failed to load subscribers:", err)
 				sess.queueOut(ErrUnknown(msg.Id, msg.Topic, now))
 				return
 			}
@@ -902,7 +902,7 @@ func (h *Hub) topicUnreg(sess *Session, topic string, msg *MsgClientDel, reason 
 				if tcat == types.TopicCatP2P && len(subs) < 2 {
 					// This is a P2P topic and fewer than 2 subscriptions, delete the entire topic
 					if err := store.Topics.Delete(topic); err != nil {
-						log.Println("topicUnreg failed to delete offline topic:", err)
+						logger.Log.Println("topicUnreg failed to delete offline topic:", err)
 						sess.queueOut(ErrUnknown(msg.Id, msg.Topic, now))
 						return
 					}
@@ -911,7 +911,7 @@ func (h *Hub) topicUnreg(sess *Session, topic string, msg *MsgClientDel, reason 
 					// Not P2P or more than 1 subscription left.
 					// Delete user's own subscription only
 
-					log.Println("topicUnreg failed (3):", err)
+					logger.Log.Println("topicUnreg failed (3):", err)
 					sess.queueOut(ErrUnknown(msg.Id, msg.Topic, now))
 					return
 				}
@@ -927,7 +927,7 @@ func (h *Hub) topicUnreg(sess *Session, topic string, msg *MsgClientDel, reason 
 			} else {
 				// Case 1.2.1.1: owner, delete the topic from db
 				if err := store.Topics.Delete(topic); err != nil {
-					log.Println("topicUnreg failed (4):", err)
+					logger.Log.Println("topicUnreg failed (4):", err)
 					sess.queueOut(ErrUnknown(msg.Id, msg.Topic, now))
 					return
 				}
@@ -960,7 +960,7 @@ func (h *Hub) topicUnreg(sess *Session, topic string, msg *MsgClientDel, reason 
 
 // replyTopicDescBasic loads minimal topic Desc when the requester is not subscribed to the topic
 func replyTopicDescBasic(sess *Session, topic string, get *MsgClientGet) {
-	log.Printf("hub.replyTopicDescBasic: topic %s", topic)
+	logger.Log.Printf("hub.replyTopicDescBasic: topic %s", topic)
 	now := time.Now().UTC().Round(time.Millisecond)
 	desc := &MsgTopicDesc{}
 

@@ -4,7 +4,7 @@ package main
 
 import (
 	"encoding/json"
-	"log"
+	"github.com/mudphilo/chat/logger"
 	"time"
 
 	"github.com/mudphilo/chat/pbx"
@@ -63,7 +63,7 @@ func pbServPresSerialize(pres *MsgServerPres) *pbx.ServerMsg_Pres {
 	case "del":
 		what = pbx.ServerPres_DEL
 	default:
-		log.Fatal("Unknown pres.what value", pres.What)
+		logger.Log.Fatal("Unknown pres.what value", pres.What)
 	}
 	return &pbx.ServerMsg_Pres{Pres: &pbx.ServerPres{
 		Topic:        pres.Topic,
@@ -396,7 +396,7 @@ func bytesToInterface(in []byte) interface{} {
 	var out interface{}
 	err := json.Unmarshal(in, &out)
 	if err != nil {
-		log.Println("pbx: failed to parse bytes", string(in), err)
+		logger.Log.Println("pbx: failed to parse bytes", string(in), err)
 	}
 	return out
 }
@@ -564,7 +564,7 @@ func pbInfoNoteWhatSerialize(what string) pbx.InfoNote {
 	case "recv":
 		out = pbx.InfoNote_RECV
 	default:
-		log.Fatal("unknown info-note.what", what)
+		logger.Log.Fatal("unknown info-note.what", what)
 	}
 	return out
 }
@@ -579,7 +579,7 @@ func pbInfoNoteWhatDeserialize(what pbx.InfoNote) string {
 	case pbx.InfoNote_RECV:
 		out = "recv"
 	default:
-		log.Fatal("unknown info-note.what", what)
+		logger.Log.Fatal("unknown info-note.what", what)
 	}
 	return out
 }

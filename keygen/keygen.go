@@ -9,8 +9,8 @@ import (
 	"encoding/binary"
 	"flag"
 	"fmt"
-	"log"
 	"os"
+	"github.com/mudphilo/chat/logger"
 )
 
 // Generate API key
@@ -61,7 +61,7 @@ func generate(sequence, isRoot int, hmacSaltB64 string) int {
 		hmacSalt = make([]byte, 32)
 		_, err := rand.Read(hmacSalt)
 		if err != nil {
-			log.Println("Failed to generate HMAC salt", err)
+			logger.Log.Println("Failed to generate HMAC salt", err)
 			return 1
 		}
 		hmacSaltB64 = base64.URLEncoding.EncodeToString(hmacSalt)
@@ -69,7 +69,7 @@ func generate(sequence, isRoot int, hmacSaltB64 string) int {
 		var err error
 		hmacSalt, err = base64.URLEncoding.DecodeString(hmacSaltB64)
 		if err != nil {
-			log.Println("Failed to decode HMAC salt", err)
+			logger.Log.Println("Failed to decode HMAC salt", err)
 			return 1
 		}
 	}
@@ -110,18 +110,18 @@ func validate(apikey string, hmacSaltB64 string) int {
 
 	hmacSalt, err := base64.URLEncoding.DecodeString(hmacSaltB64)
 	if err != nil {
-		log.Println("Failed to decode HMAC salt", err)
+		logger.Log.Println("Failed to decode HMAC salt", err)
 		return 1
 	}
 
 	if declen := base64.URLEncoding.DecodedLen(len(apikey)); declen != APIKEY_LENGTH {
-		log.Printf("Invalid key length %d, expecting %d", declen, APIKEY_LENGTH)
+		logger.Log.Printf("Invalid key length %d, expecting %d", declen, APIKEY_LENGTH)
 		return 1
 	}
 
 	data, err := base64.URLEncoding.DecodeString(apikey)
 	if err != nil {
-		log.Println("Failed to decode key as base64", err)
+		logger.Log.Println("Failed to decode key as base64", err)
 		return 1
 	}
 
@@ -129,7 +129,7 @@ func validate(apikey string, hmacSaltB64 string) int {
 	binary.Read(buf, binary.LittleEndian, &version)
 
 	if version != 1 {
-		log.Println("Unknown signature algorithm ", data[0])
+		logger.Log.Println("Unknown signature algorithm ", data[0])
 		return 1
 	}
 

@@ -10,7 +10,7 @@ package main
 
 import (
 	"container/list"
-	"log"
+	"github.com/mudphilo/chat/logger"
 	"net/http"
 	"sync"
 	"time"
@@ -137,7 +137,7 @@ func (ss *SessionStore) Shutdown() {
 		}
 	}
 
-	log.Printf("SessionStore shut down, sessions terminated: %d", len(ss.sessCache))
+	logger.Log.Printf("SessionStore shut down, sessions terminated: %d", len(ss.sessCache))
 }
 
 // NewSessionStore initializes a session store.

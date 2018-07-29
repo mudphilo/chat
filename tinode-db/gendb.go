@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
+	"github.com/mudphilo/chat/logger"
 	"math/rand"
 	"path/filepath"
 	"strings"
@@ -20,27 +20,27 @@ func genDb(reset bool, dbSource string, data *Data) {
 
 	defer store.Close()
 
-	log.Println("Initializing DB...")
+	logger.Log.Println("Initializing DB...")
 
 	err = store.InitDb(dbSource, reset)
 	if err != nil {
 		if strings.Contains(err.Error(), " already exists") {
-			log.Println("DB already exists, NOT reinitializing")
+			logger.Log.Println("DB already exists, NOT reinitializing")
 		} else {
-			log.Fatal("Failed to init DB: ", err)
+			logger.Log.Fatal("Failed to init DB: ", err)
 		}
 	} else {
-		log.Println("Successfully initialized", store.GetAdapterName())
+		logger.Log.Println("Successfully initialized", store.GetAdapterName())
 
 	}
 	if data.Users == nil {
-		log.Println("No data provided, stopping")
+		logger.Log.Println("No data provided, stopping")
 		return
 	}
 
 	nameIndex := make(map[string]string, len(data.Users))
 
-	log.Println("Generating users...")
+	logger.Log.Println("Generating users...")
 
 	for _, uu := range data.Users {
 
@@ -66,7 +66,7 @@ func genDb(reset bool, dbSource string, data *Data) {
 
 		// store.Users.Create will subscribe user to !me topic but won't create a !me topic
 		if _, err := store.Users.Create(&user, uu.Private); err != nil {
-			log.Fatal(err)
+			logger.Log.Fatal(err)
 		}
 
 		// Save credentials: email and phone number as if they were confirmed.
@@ -77,7 +77,7 @@ func genDb(reset bool, dbSource string, data *Data) {
 				Value:  uu.Email,
 				Done:   true,
 			}); err != nil {
-				log.Fatal(err)
+				logger.Log.Fatal(err)
 			}
 		}
 		if uu.Tel != "" {
@@ -87,7 +87,7 @@ func genDb(reset bool, dbSource string, data *Data) {
 				Value:  uu.Tel,
 				Done:   true,
 			}); err != nil {
-				log.Fatal(err)
+				logger.Log.Fatal(err)
 			}
 		}
 
@@ -101,7 +101,7 @@ func genDb(reset bool, dbSource string, data *Data) {
 		if _, err := authHandler.AddRecord(&auth.Rec{Uid: user.Uid()},
 			[]byte(uu.Username+":"+passwd)); err != nil {
 
-			log.Fatal(err)
+			logger.Log.Fatal(err)
 		}
 		nameIndex[uu.Username] = user.Id
 
@@ -110,14 +110,14 @@ func genDb(reset bool, dbSource string, data *Data) {
 			if err := store.Subs.Update(user.Uid().FndName(), user.Uid(),
 				map[string]interface{}{"Private": strings.Join(uu.AddressBook, ",")}, true); err != nil {
 
-				log.Fatal(err)
+				logger.Log.Fatal(err)
 			}
 		}
 
 		fmt.Println("usr;" + uu.Username + ";" + user.Uid().UserId() + ";" + passwd)
 	}
 
-	log.Println("Generating group topics...")
+	logger.Log.Println("Generating group topics...")
 
 	for _, gt := range data.Grouptopics {
 		name := genTopicName()
@@ -135,19 +135,19 @@ func genDb(reset bool, dbSource string, data *Data) {
 		if gt.Owner != "" {
 			owner = types.ParseUid(nameIndex[gt.Owner])
 			if owner.IsZero() {
-				log.Fatal("Invalid owner", gt.Owner, "for topic", gt.Name)
+				logger.Log.Fatal("Invalid owner", gt.Owner, "for topic", gt.Name)
 			}
 			topic.GiveAccess(owner, types.ModeCFull, types.ModeCFull)
 		}
 		topic.CreatedAt = getCreatedTime(gt.CreatedAt)
 
 		if err = store.Topics.Create(topic, owner, gt.OwnerPrivate); err != nil {
-			log.Fatal(err)
+			logger.Log.Fatal(err)
 		}
 		fmt.Println("grp;" + gt.Name + ";" + name)
 	}
 
-	log.Println("Generating P2P subscriptions...")
+	logger.Log.Println("Generating P2P subscriptions...")
 
 	for i, ss := range data.P2psubs {
 		if ss.Users[0].Name < ss.Users[1].Name {
@@ -170,22 +170,22 @@ func genDb(reset bool, dbSource string, data *Data) {
 		// Check of non-default access mode was provided
 		if ss.Users[0].Want != "" {
 			if err := s0want.UnmarshalText([]byte(ss.Users[0].Want)); err != nil {
-				log.Fatal(err)
+				logger.Log.Fatal(err)
 			}
 		}
 		if ss.Users[0].Have != "" {
 			if err := s0given.UnmarshalText([]byte(ss.Users[0].Have)); err != nil {
-				log.Fatal(err)
+				logger.Log.Fatal(err)
 			}
 		}
 		if ss.Users[1].Want != "" {
 			if err := s1want.UnmarshalText([]byte(ss.Users[1].Want)); err != nil {
-				log.Fatal(err)
+				logger.Log.Fatal(err)
 			}
 		}
 		if ss.Users[1].Have != "" {
 			if err := s1given.UnmarshalText([]byte(ss.Users[1].Have)); err != nil {
-				log.Fatal(err)
+				logger.Log.Fatal(err)
 			}
 		}
 
@@ -206,7 +206,7 @@ func genDb(reset bool, dbSource string, data *Data) {
 				Private:   ss.Users[1].Private})
 
 		if err != nil {
-			log.Fatal(err)
+			logger.Log.Fatal(err)
 		}
 
 		data.P2psubs[i].pair = ss.pair
@@ -214,7 +214,7 @@ func genDb(reset bool, dbSource string, data *Data) {
 		fmt.Println("p2p;" + ss.pair + ";" + topic)
 	}
 
-	log.Println("Generating group subscriptions...")
+	logger.Log.Println("Generating group subscriptions...")
 
 	for _, ss := range data.Groupsubs {
 
@@ -222,12 +222,12 @@ func genDb(reset bool, dbSource string, data *Data) {
 		given := types.ModeCPublic
 		if ss.Want != "" {
 			if err := want.UnmarshalText([]byte(ss.Want)); err != nil {
-				log.Fatal(err)
+				logger.Log.Fatal(err)
 			}
 		}
 		if ss.Have != "" {
 			if err := given.UnmarshalText([]byte(ss.Have)); err != nil {
-				log.Fatal(err)
+				logger.Log.Fatal(err)
 			}
 		}
 
@@ -239,11 +239,11 @@ func genDb(reset bool, dbSource string, data *Data) {
 			ModeGiven: given,
 			Private:   ss.Private}); err != nil {
 
-			log.Fatal(err)
+			logger.Log.Fatal(err)
 		}
 	}
 
-	log.Println("Generating messages...")
+	logger.Log.Println("Generating messages...")
 
 	seqIds := map[string]int{}
 
@@ -284,21 +284,21 @@ func genDb(reset bool, dbSource string, data *Data) {
 			Topic:     topic,
 			From:      from.String(),
 			Content:   str}); err != nil {
-			log.Fatal("Failed to create message: ", err)
+			logger.Log.Fatal("Failed to create message: ", err)
 		}
 
 		// New increment: remaining time until 'now' divided by the number of messages to be inserted,
 		// then converted to milliseconds.
 		increment = int(now.Sub(timestamp).Nanoseconds() / int64(toInsert-i) / 1000000)
 
-		// log.Printf("Msg.seq=%d at %v, topic='%s' from='%s'", msg.SeqId, msg.CreatedAt, topic, from.UserId())
+		// logger.Log.Printf("Msg.seq=%d at %v, topic='%s' from='%s'", msg.SeqId, msg.CreatedAt, topic, from.UserId())
 	}
 }
 
 // Go json cannot unmarshal Duration from a sring, thus this hask.
 func getCreatedTime(delta string) time.Time {
 	if dd, err := time.ParseDuration(delta); err != nil && delta != "" {
-		log.Fatal("Invalid duration string", delta)
+		logger.Log.Fatal("Invalid duration string", delta)
 	} else {
 		return time.Now().UTC().Round(time.Millisecond).Add(dd)
 	}
@@ -334,7 +334,7 @@ func parsePublic(public *vCardy, path string) *vcard {
 		}
 		photo.Data, err = ioutil.ReadFile(filepath.Join(dir, fname))
 		if err != nil {
-			log.Fatal(err)
+			logger.Log.Fatal(err)
 		}
 	}
 

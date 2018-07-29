@@ -15,7 +15,7 @@ package main
 import (
 	"encoding/json"
 	"io"
-	"log"
+	"github.com/mudphilo/chat/logger"
 	"net/http"
 	"strings"
 	"time"
@@ -25,7 +25,7 @@ import (
 )
 
 func largeFileServe(wrt http.ResponseWriter, req *http.Request) {
-	log.Println("Request to download file", req.URL.Path)
+	logger.Log.Println("Request to download file", req.URL.Path)
 
 	now := time.Now().UTC().Round(time.Millisecond)
 	enc := json.NewEncoder(wrt)
@@ -145,7 +145,7 @@ func largeFileUpload(wrt http.ResponseWriter, req *http.Request) {
 
 	file, _, err := req.FormFile("file")
 	if err != nil {
-		log.Println("Error reading file", err)
+		logger.Log.Println("Error reading file", err)
 		if strings.Contains(err.Error(), "request body too large") {
 			writeHttpResponse(ErrTooLarge("", "", now))
 		} else {
@@ -160,21 +160,21 @@ func largeFileUpload(wrt http.ResponseWriter, req *http.Request) {
 
 	buff := make([]byte, 512)
 	if _, err = file.Read(buff); err != nil {
-		log.Println("Failed to detect mime type", err)
+		logger.Log.Println("Failed to detect mime type", err)
 		writeHttpResponse(nil)
 		return
 	}
 
 	fdef.MimeType = http.DetectContentType(buff)
 	if _, err = file.Seek(0, io.SeekStart); err != nil {
-		log.Println("Failed to reset request buffer", err)
+		logger.Log.Println("Failed to reset request buffer", err)
 		writeHttpResponse(nil)
 		return
 	}
 
 	url, err := mh.Upload(&fdef, file)
 	if err != nil {
-		log.Println("Failed to upload file", fdef.Id, err)
+		logger.Log.Println("Failed to upload file", fdef.Id, err)
 		writeHttpResponse(decodeStoreError(err, "", "", now, nil))
 		return
 	}
@@ -192,7 +192,7 @@ func largeFileRunGarbageCollection(period time.Duration, block int) chan<- bool 
 			select {
 			case <-gcTimer:
 				if err := store.Files.DeleteUnused(time.Now().Add(-time.Hour), block); err != nil {
-					log.Println("media gc:", err)
+					logger.Log.Println("media gc:", err)
 				}
 			case <-stop:
 				return

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"log"
+	"github.com/mudphilo/chat/logger"
 	"math/rand"
 	"net/rpc"
 	"time"
@@ -87,7 +87,7 @@ func (c *Cluster) failoverInit(config *clusterFailoverConfig) bool {
 		return false
 	}
 	if len(c.nodes) < 2 {
-		log.Printf("cluster: failover disabled; need at least 3 nodes, got %d", len(c.nodes)+1)
+		logger.Log.Printf("cluster: failover disabled; need at least 3 nodes, got %d", len(c.nodes)+1)
 		return false
 	}
 
@@ -114,7 +114,7 @@ func (c *Cluster) failoverInit(config *clusterFailoverConfig) bool {
 		electionVote:       make(chan *ClusterVote, len(c.nodes)),
 		done:               make(chan bool, 1)}
 
-	log.Println("cluster: failover mode enabled")
+	logger.Log.Println("cluster: failover mode enabled")
 
 	return true
 }
@@ -180,7 +180,7 @@ func (c *Cluster) sendPings() {
 		c.fo.activeNodes = activeNodes
 		c.rehash(activeNodes)
 
-		log.Println("cluster: initiating failover rehash for nodes", activeNodes)
+		logger.Log.Println("cluster: initiating failover rehash for nodes", activeNodes)
 		globals.hub.rehash <- true
 	}
 }
@@ -190,7 +190,7 @@ func (c *Cluster) electLeader() {
 	c.fo.term++
 	c.fo.leader = ""
 
-	log.Println("cluster: leading new election for term", c.fo.term)
+	logger.Log.Println("cluster: leading new election for term", c.fo.term)
 
 	nodeCount := len(c.nodes)
 	// Number of votes needed to elect the leader
@@ -236,7 +236,7 @@ func (c *Cluster) electLeader() {
 	if voteCount >= expectVotes {
 		// Current node elected as the leader
 		c.fo.leader = c.thisNodeName
-		log.Println("Elected myself as a new leader")
+		logger.Log.Println("Elected myself as a new leader")
 	}
 }
 
@@ -269,21 +269,21 @@ func (c *Cluster) run() {
 
 			if ping.Term < c.fo.term {
 				// This is a ping from a stale leader. Ignore.
-				log.Println("cluster: ping from a stale leader", ping.Term, c.fo.term, ping.Leader, c.fo.leader)
+				logger.Log.Println("cluster: ping from a stale leader", ping.Term, c.fo.term, ping.Leader, c.fo.leader)
 				continue
 			}
 
 			if ping.Term > c.fo.term {
 				c.fo.term = ping.Term
 				c.fo.leader = ping.Leader
-				log.Printf("cluster: leader '%s' elected", c.fo.leader)
+				logger.Log.Printf("cluster: leader '%s' elected", c.fo.leader)
 			} else if ping.Leader != c.fo.leader {
 				if c.fo.leader != "" {
 					// Wrong leader. It's a bug, should never happen!
-					log.Printf("cluster: wrong leader '%s' while expecting '%s'; term %d",
+					logger.Log.Printf("cluster: wrong leader '%s' while expecting '%s'; term %d",
 						ping.Leader, c.fo.leader, ping.Term)
 				} else {
-					log.Printf("cluster: leader set to '%s'", ping.Leader)
+					logger.Log.Printf("cluster: leader set to '%s'", ping.Leader)
 				}
 				c.fo.leader = ping.Leader
 			}
@@ -291,7 +291,7 @@ func (c *Cluster) run() {
 			missed = 0
 			if ping.Signature != c.ring.Signature() {
 				if rehashSkipped {
-					log.Println("cluster: rehashing at a request of",
+					logger.Log.Println("cluster: rehashing at a request of",
 						ping.Leader, ping.Nodes, ping.Signature, c.ring.Signature())
 					c.rehash(ping.Nodes)
 					rehashSkipped = false
@@ -306,13 +306,13 @@ func (c *Cluster) run() {
 			if c.fo.term < vreq.req.Term {
 				// This is a new election. This node has not voted yet. Vote for the requestor and
 				// clear the current leader.
-				log.Printf("Voting YES for %s, my term %d, vote term %d", vreq.req.Node, c.fo.term, vreq.req.Term)
+				logger.Log.Printf("Voting YES for %s, my term %d, vote term %d", vreq.req.Node, c.fo.term, vreq.req.Term)
 				c.fo.term = vreq.req.Term
 				c.fo.leader = ""
 				vreq.resp <- ClusterVoteResponse{Result: true, Term: c.fo.term}
 			} else {
 				// This node has voted already or stale election, reject.
-				log.Printf("Voting NO for %s, my term %d, vote term %d", vreq.req.Node, c.fo.term, vreq.req.Term)
+				logger.Log.Printf("Voting NO for %s, my term %d, vote term %d", vreq.req.Node, c.fo.term, vreq.req.Term)
 				vreq.resp <- ClusterVoteResponse{Result: false, Term: c.fo.term}
 			}
 		case <-c.fo.done:

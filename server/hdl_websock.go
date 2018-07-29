@@ -11,7 +11,7 @@ package main
 
 import (
 	"encoding/json"
-	"log"
+	"github.com/mudphilo/chat/logger"
 	"net/http"
 	"time"
 
@@ -37,7 +37,7 @@ func (sess *Session) closeWS() {
 
 func (sess *Session) readLoop() {
 	defer func() {
-		log.Println("serveWebsocket - stop")
+		logger.Log.Println("serveWebsocket - stop")
 		sess.closeWS()
 		sess.cleanUp()
 	}()
@@ -54,7 +54,7 @@ func (sess *Session) readLoop() {
 		// Read a ClientComMessage
 		_, raw, err := sess.ws.ReadMessage()
 		if err != nil {
-			log.Println("sess.readLoop: " + err.Error())
+			logger.Log.Println("sess.readLoop: " + err.Error())
 			return
 		}
 
@@ -78,7 +78,7 @@ func (sess *Session) writeLoop() {
 				return
 			}
 			if err := wsWrite(sess.ws, websocket.TextMessage, msg); err != nil {
-				log.Println("sess.writeLoop: " + err.Error())
+				logger.Log.Println("sess.writeLoop: " + err.Error())
 				return
 			}
 		case msg := <-sess.stop:
@@ -93,7 +93,7 @@ func (sess *Session) writeLoop() {
 
 		case <-ticker.C:
 			if err := wsWrite(sess.ws, websocket.PingMessage, nil); err != nil {
-				log.Println("sess.writeLoop: ping/" + err.Error())
+				logger.Log.Println("sess.writeLoop: ping/" + err.Error())
 				return
 			}
 		}
@@ -126,23 +126,23 @@ func serveWebSocket(wrt http.ResponseWriter, req *http.Request) {
 	if isValid, _ := checkAPIKey(getAPIKey(req)); !isValid {
 		wrt.WriteHeader(http.StatusForbidden)
 		json.NewEncoder(wrt).Encode(ErrAPIKeyRequired(now))
-		log.Println("ws: Missing, invalid or expired API key")
+		logger.Log.Println("ws: Missing, invalid or expired API key")
 		return
 	}
 
 	if req.Method != http.MethodGet {
 		wrt.WriteHeader(http.StatusMethodNotAllowed)
 		json.NewEncoder(wrt).Encode(ErrOperationNotAllowed("", "", now))
-		log.Println("ws: Invalid HTTP method", req.Method)
+		logger.Log.Println("ws: Invalid HTTP method", req.Method)
 		return
 	}
 
 	ws, err := upgrader.Upgrade(wrt, req, nil)
 	if _, ok := err.(websocket.HandshakeError); ok {
-		log.Println("ws: Not a websocket handshake")
+		logger.Log.Println("ws: Not a websocket handshake")
 		return
 	} else if err != nil {
-		log.Println("ws: failed to Upgrade ", err.Error())
+		logger.Log.Println("ws: failed to Upgrade ", err.Error())
 		return
 	}
 
