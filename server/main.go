@@ -213,7 +213,7 @@ func main() {
 	var staticPath = flag.String("static_data", defaultStaticPath, "Path to directory with static files to be served.")
 	var listenOn = flag.String("listen", "", "Override address and port to listen on for HTTP(S) clients.")
 	var listenGrpc = flag.String("grpc_listen", "", "Override address and port to listen on for gRPC clients.")
-	var tlsEnabled = flag.Bool("tls_enabled", true, "Override config value for enabling TLS")
+	var tlsEnabled = flag.Bool("tls_enabled", false, "Override config value for enabling TLS")
 	var clusterSelf = flag.String("cluster_self", "", "Override the name of the current cluster node")
 	var expvarPath = flag.String("expvar", "", "Expose runtime stats at the given endpoint, e.g. /debug/vars. Disabled if not set")
 	var pprofFile = flag.String("pprof", defaultPprofPath, "File name to save profiling info to. Disabled if not set")
