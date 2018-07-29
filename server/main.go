@@ -404,12 +404,16 @@ func main() {
 	var staticMountPoint string
 	if *staticPath != "" && *staticPath != "-" {
 		if *staticPath == defaultStaticPath {
+			/*
 			path, err := os.Getwd()
 			if err != nil {
 				logger.Log.Fatal("Failed to get current directory:", err)
 			}
 			// FileServer expects "/" path separator even on Windows.
-			*staticPath = path + "/" + defaultStaticPath
+			//*staticPath = path + "/" + defaultStaticPath
+
+			*staticPath =  defaultStaticPath
+			*/
 		}
 
 		staticMountPoint = config.StaticMount
