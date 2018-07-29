@@ -68,7 +68,7 @@ const (
 
 	// defaultMaxSubscriberCount is the default maximum number of group topic subscribers.
 	// Also set in adapter.
-	defaultMaxSubscriberCount = 256
+	defaultMaxSubscriberCount = 512
 
 	// defaultMaxTagCount is the default maximum number of indexable tags
 	defaultMaxTagCount = 16
@@ -88,7 +88,13 @@ const (
 	defaultStaticMount = "/"
 
 	// Local path to static content
-	defaultStaticPath = "static"
+	defaultStaticPath = "/go/tinode-web"
+
+	// Local path to config content
+	defaultConfigPath = "/go/src/github.com/mudphilo/chat/server/tinode.conf"
+
+	// pprof path
+	defaultPprofPath = "/var/log/tinode/pprof.log"
 )
 
 // Build version number defined by the compiler:
@@ -201,15 +207,16 @@ type configType struct {
 func main() {
 	logger.Log.Printf("Server 'v%s:%s:%s'; pid %d; started with %d process(es)", currentVersion,
 		buildstamp, store.GetAdapterName(), os.Getpid(), runtime.GOMAXPROCS(runtime.NumCPU()))
-	var configfile = flag.String("config", "./tinode.conf", "Path to config file.")
+
+	var configfile = flag.String("config", defaultConfigPath, "Path to config file.")
 	// Path to static content.
 	var staticPath = flag.String("static_data", defaultStaticPath, "Path to directory with static files to be served.")
 	var listenOn = flag.String("listen", "", "Override address and port to listen on for HTTP(S) clients.")
 	var listenGrpc = flag.String("grpc_listen", "", "Override address and port to listen on for gRPC clients.")
-	var tlsEnabled = flag.Bool("tls_enabled", false, "Override config value for enabling TLS")
+	var tlsEnabled = flag.Bool("tls_enabled", true, "Override config value for enabling TLS")
 	var clusterSelf = flag.String("cluster_self", "", "Override the name of the current cluster node")
 	var expvarPath = flag.String("expvar", "", "Expose runtime stats at the given endpoint, e.g. /debug/vars. Disabled if not set")
-	var pprofFile = flag.String("pprof", "", "File name to save profiling info to. Disabled if not set")
+	var pprofFile = flag.String("pprof", defaultPprofPath, "File name to save profiling info to. Disabled if not set")
 	flag.Parse()
 
 	logger.Log.Printf("Using config from '%s'", *configfile)
