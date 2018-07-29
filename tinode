@@ -20,7 +20,7 @@
 # Check that networking is up.
 [ "$NETWORKING" = "no" ] && exit 0
 
-USER="philo"
+USER="root"
 APPNAME="tinode"
 APPBIN="$GOPATH/bin/server"
 CONFIG="$GOPATH/src/github.com/mudphilo/chat/server/tinode.conf"
