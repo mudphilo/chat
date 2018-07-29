@@ -3,7 +3,7 @@ package logger
 import (
 	"flag"
 	"os"
-	"github.com/mudphilo/chat/logger"
+	"log"
 )
 
 var (
