@@ -179,6 +179,12 @@ def client_message_loop(stream):
             elif msg.HasField("data"):
                 # Respond to message.
                 print("message from: ", msg.data.from_user_id)
+
+                if msg.data.content.txt
+                    rc = msg.data.content.txt.decode('utf-8')
+                else:
+                    rc = msg.data.content.decode('utf-8')
+
                 rc = msg.data.content.decode('utf-8')
                 rc = rc.strip('"')
                 print("message content: ", rc)
