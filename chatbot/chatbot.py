@@ -64,8 +64,7 @@ def next_quote(msg):
         idx = random.randrange(0, len(quotes))
     next_quote.idx = idx
     qt = quotes[idx].encode('utf-8')
-    qt = qt.replace("xxxx","\n")
-    qt = qt.replace("yyyy","--")
+    qt = qt.replace('xxxx','\n')
     return "*"+msg+"*\n\n"+qt
 next_quote.idx = 0
 
