@@ -64,7 +64,7 @@ def next_quote(msg):
         idx = random.randrange(0, len(quotes))
     next_quote.idx = idx
     qt = quotes[idx]
-    qt = str.replace("<br>", "\n")
+    qt = str.replace("xxxx", "\n")
     return "*"+msg+"*\n\n"+qt
 next_quote.idx = 0
 
