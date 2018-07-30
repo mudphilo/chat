@@ -179,11 +179,13 @@ def client_message_loop(stream):
             elif msg.HasField("data"):
                 # Respond to message.
                 print("message from: ", msg.data.from_user_id)
-                print("message content: ", msg.data.content)
+                rc = msg.data.content.strip('"')
+                rc = msg.data.content.strip("'")
+                print("message content: ", rc)
                 # Mark received message as read
                 client_post(note_read(msg.data.topic, msg.data.seq_id))
                 # Respond with a witty quote
-                client_post(publish(msg.data.topic, next_quote(msg.data.content)))
+                client_post(publish(msg.data.topic, next_quote(rc)))
 
             elif msg.HasField("pres"):
                 # print("presence:", msg.pres.topic, msg.pres.what)
