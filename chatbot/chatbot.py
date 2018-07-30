@@ -57,13 +57,14 @@ def next_id():
     return str(next_id.tid)
 next_id.tid = 100
 
-def next_quote():
+def next_quote(msg):
     idx = random.randrange(0, len(quotes))
     # Make sure quotes and not repeated
     while idx == next_quote.idx:
         idx = random.randrange(0, len(quotes))
     next_quote.idx = idx
-    return quotes[idx]
+    qt = quotes[idx]
+    return "***"+msg+"***\n"+qt
 next_quote.idx = 0
 
 # This is the class for the server-side gRPC endpoints
@@ -182,7 +183,7 @@ def client_message_loop(stream):
                 # Mark received message as read
                 client_post(note_read(msg.data.topic, msg.data.seq_id))
                 # Respond with a witty quote
-                client_post(publish(msg.data.topic, next_quote()))
+                client_post(publish(msg.data.topic, next_quote(msg.data.content)))
 
             elif msg.HasField("pres"):
                 # print("presence:", msg.pres.topic, msg.pres.what)
