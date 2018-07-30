@@ -249,7 +249,7 @@ def save_auth_cookie(cookie_file_name, params):
         print("Failed to save authentication cookie", err)
 
 def load_quotes(file_name):
-    with open(file_name) as f:
+    with open(file_name, 'r', encoding='utf-8') as f:
         for line in f:
             quotes.append(line.strip())
 
