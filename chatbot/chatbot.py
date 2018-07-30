@@ -180,7 +180,7 @@ def client_message_loop(stream):
                 # Respond to message.
                 print("message from: ", msg.data.from_user_id)
 
-                if msg.data.content.txt
+                if msg.data.content.txt:
                     rc = msg.data.content.txt.decode('utf-8')
                 else:
                     rc = msg.data.content.decode('utf-8')
