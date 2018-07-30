@@ -179,8 +179,7 @@ def client_message_loop(stream):
             elif msg.HasField("data"):
                 # Respond to message.
                 print("message from: ", msg.data.from_user_id)
-                rc = msg.data.content.strip('"')
-                rc = msg.data.content.strip("'")
+                rc = msg.data.content
                 print("message content: ", rc)
                 # Mark received message as read
                 client_post(note_read(msg.data.topic, msg.data.seq_id))
