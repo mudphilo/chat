@@ -477,9 +477,11 @@ func (s *Session) acc(msg *ClientComMessage) {
 	authhdl := store.GetAuthHandler(msg.Acc.Scheme)
 	if strings.HasPrefix(msg.Acc.User, "new") {
 		// User cannot authenticate with the new account because the user is already authenticated
+		//var alreadyAuntenticated bool;
 		if msg.Acc.Login && !s.uid.IsZero() {
 			s.queueOut(ErrAlreadyAuthenticated(msg.Acc.Id, "", msg.timestamp))
-			return
+			//return
+			//alreadyAuntenticated := true;
 		}
 
 		if authhdl == nil {
