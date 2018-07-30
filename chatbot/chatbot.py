@@ -64,7 +64,8 @@ def next_quote(msg):
         idx = random.randrange(0, len(quotes))
     next_quote.idx = idx
     qt = quotes[idx]
-    return "*"+msg+"*\n"+qt
+    qt = str.replace("<br>", "\n")
+    return "*"+msg+"*\n\n"+qt
 next_quote.idx = 0
 
 # This is the class for the server-side gRPC endpoints
