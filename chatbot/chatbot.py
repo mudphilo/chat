@@ -65,6 +65,7 @@ def next_quote(msg):
     next_quote.idx = idx
     qt = quotes[idx]
     qt = str.replace("xxxx", "\n")
+    qt = str.replace("yyyy", "--")
     return "*"+msg+"*\n\n"+qt
 next_quote.idx = 0
 
