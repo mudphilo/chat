@@ -16,7 +16,6 @@ import (
 
 	"github.com/mudphilo/chat/logger"
 	"net/http"
-	"fmt"
 	"io/ioutil"
 )
 
@@ -158,6 +157,8 @@ func (v *validator) send(msisdn, message string) error {
 		return err
 	}
 
+	logger.Log.Println(string(jsonData))
+
 	var jsonStr = []byte(jsonData)
 
 	req, err := http.NewRequest("POST", v.Url, bytes.NewBuffer(jsonStr))
@@ -170,8 +171,8 @@ func (v *validator) send(msisdn, message string) error {
 	}
 	defer resp.Body.Close()
 
-	fmt.Println("response Status:", resp.Status)
-	fmt.Println("response Headers:", resp.Header)
+	logger.Log.Println("response Status:", resp.Status)
+	logger.Log.Println("response Headers:", resp.Header)
 	body, _ := ioutil.ReadAll(resp.Body)
 	logger.Log.Println(string(body))
 	return nil;
