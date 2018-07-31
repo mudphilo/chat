@@ -24,7 +24,7 @@ echo "loading ticktick library"
 
 echo "load credentials file"
 # File
-DATA=`cat $CREDENTIALS`
+DATA=cat $CREDENTIALS
 echo "parse credentials file"
 tickParse "$DATA"
 
