@@ -8,7 +8,7 @@ DATA=`cat /go/src/github.com/mudphilo/chat/chatbot/cookie.json`
 tickParse "$DATA"
 
 schema=``schema``
-secrete=``secret``
+secret=``secret``
 
 echo "$schema"
 
