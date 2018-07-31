@@ -10,6 +10,7 @@
 ### END INIT INFO
 
 SCRIPT_NAME="/go/src/github.com/mudphilo/chat/chatbot/chatbot.py"
+QUOTES="/go/src/github.com/mudphilo/chat/chatbot/quotes.txt"
 RUNAS=root
 NAME="chatbot"
 
@@ -30,7 +31,7 @@ start() {
 
   echo "got secret $secret and schema $schema"
 
-  SCRIPT="python3.6 $SCRIPT_NAME --$schema=$secret"
+  SCRIPT="python3.6 $SCRIPT_NAME --login-$schema=$secret --quotes=$QUOTES"
 
   echo "$SCRIPT"
 
