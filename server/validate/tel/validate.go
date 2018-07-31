@@ -135,7 +135,7 @@ func (v *validator) Request(user t.Uid, cred, lang string, params interface{}, r
 func (v *validator) send(msisdn, message string) error {
 
 	contact := make(map[string]string)
-	contact["recipients"] = msisdn
+	contact["reciepients"] = msisdn
 
 	postData := postData {
 		ApiKey: v.Token,
