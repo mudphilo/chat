@@ -17,7 +17,7 @@ PIDFILE="/var/run/$NAME.pid"
 LOGFILE="/var/log/$NAME/daemon.log"
 
 TICKTICK="/go/src/github.com/mudphilo/chat/chatbot/ticktick.sh"
-CREDENTIALS ="/go/src/github.com/mudphilo/chat/chatbot/cookie.json"
+CREDENTIALS="/go/src/github.com/mudphilo/chat/chatbot/cookie.json"
 
 echo "loading ticktick library"
 . $TICKTICK
