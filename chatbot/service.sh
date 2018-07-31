@@ -7,5 +7,10 @@ DATA=`cat /go/src/github.com/mudphilo/chat/chatbot/cookie.json`
 
 tickParse "$DATA"
 
-echo ``schema``
-echo ``secret``
+if [ ``schema`` = "login" ]; then
+  echo "schema is login"
+fi
+
+if [ ``schema`` = "token" ]; then
+  echo "schema is login"
+fi
