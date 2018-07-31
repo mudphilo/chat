@@ -16,31 +16,33 @@ NAME="chatbot"
 PIDFILE="/var/run/$NAME.pid"
 LOGFILE="/var/log/$NAME/daemon.log"
 
-TICKTICK="/go/src/github.com/mudphilo/chat/chatbot/ticktick.sh"
-CREDENTIALS="/go/src/github.com/mudphilo/chat/chatbot/cookie.json"
-
-echo "loading ticktick library"
-. $TICKTICK
-
-echo "load credentials file"
-# File
-DATA=cat $CREDENTIALS
-echo "parse credentials file"
-tickParse "$DATA"
-
-schema=``schema``
-secret=``secret``
-
-echo "got secret $secret and schema $schema"
-
-SCRIPT="python3.6 $SCRIPT_NAME --login-$schema=$secret"
-
 start() {
   if [ -f $PIDFILE ] && [ -s $PIDFILE ] && kill -0 $(cat $PIDFILE); then
     echo 'Service already running' >&2
     return 1
   fi
   echo 'Starting service?~@?' >&2
+  TICKTICK="/go/src/github.com/mudphilo/chat/chatbot/ticktick.sh"
+  CREDENTIALS="/go/src/github.com/mudphilo/chat/chatbot/cookie.json"
+
+  echo "loading ticktick library"
+  . "$TICKTICK"
+
+  cho "load credentials file"
+  # File
+  DATA=`cat $CREDENTIALS`
+  echo "parse credentials file"
+  tickParse "$DATA"
+
+  schema=``schema``
+  secret=``secret``
+
+  echo "got secret $secret and schema $schema"
+
+  SCRIPT="python3.6 $SCRIPT_NAME --login-$schema=$secret"
+
+  echo "$SCRIPT"
+
   local CMD="$SCRIPT &> \"$LOGFILE\" & echo \$!"
   su -c "$CMD" $RUNAS > "$PIDFILE"
  # Try with this command line instead of above if not workable
