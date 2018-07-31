@@ -22,24 +22,15 @@ start() {
     return 1
   fi
   echo 'Starting service?~@?' >&2
-  TICKTICK="/go/src/github.com/mudphilo/chat/chatbot/ticktick.sh"
-  CREDENTIALS="/go/src/github.com/mudphilo/chat/chatbot/cookie.json"
+
+  CREDENTIALS="/go/src/github.com/mudphilo/chat/chatbot/cookie.ini"
 
   echo "loading ticktick library"
-  . /go/src/github.com/mudphilo/chat/chatbot/ticktick.sh
-
-  cho "load credentials file"
-  # File
-  DATA=`cat $CREDENTIALS`
-  echo "parse credentials file"
-  tickParse "$DATA"
-
-  schema=``schema``
-  secret=``secret``
+  . $CREDENTIALS
 
   echo "got secret $secret and schema $schema"
 
-  SCRIPT="python3.6 $SCRIPT_NAME --login-$schema=$secret"
+  SCRIPT="python3.6 $SCRIPT_NAME --$schema=$secret"
 
   echo "$SCRIPT"
 
