@@ -23,7 +23,7 @@ import (
 // Validator configuration.
 type validator struct {
 
-	TemplateFile   string `json:"msg_body_templ"`
+	TemplateFile   string `json:"template"`
 	Password 	   string `json:"password"`
 	SenderId 	   string `json:"sender_id"`
 	Username 	   string `json:"username"`
