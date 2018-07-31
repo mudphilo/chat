@@ -26,7 +26,7 @@ start() {
   CREDENTIALS="/go/src/github.com/mudphilo/chat/chatbot/cookie.json"
 
   echo "loading ticktick library"
-  . "$TICKTICK"
+  . /go/src/github.com/mudphilo/chat/chatbot/ticktick.sh
 
   cho "load credentials file"
   # File
