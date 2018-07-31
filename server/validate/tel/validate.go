@@ -143,7 +143,7 @@ func (v *validator) send(msisdn, message string) error {
 		Message: message,
 		Contacts:contact,
 		Prefix: "TINODE-X",
-		Origin:"WEB",
+		Origin: "WEB",
 		IsScheduled: "0",
 		ScheduleDate: "2018-01-01",
 		ScheduleTime: "00:00:00",
