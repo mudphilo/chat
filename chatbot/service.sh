@@ -47,7 +47,6 @@ start() {
   su -c "$CMD" $RUNAS > "$PIDFILE"
  # Try with this command line instead of above if not workable
  # su -s /bin/sh $RUNAS -c "$CMD" > "$PIDFILE"
-
   sleep 2
   PID=$(cat $PIDFILE)
     if pgrep -u $RUNAS -f $NAME > /dev/null
