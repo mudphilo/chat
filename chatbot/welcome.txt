@@ -1,2 +1,2 @@
-{greetings} {name}{newline}Welcome to Ally Super App{newline}We bring the world to your hand
-Hey {name}{newline}Welcome to Ally Super App{newline}We bring the world to your hand{newline}I am Ally The Bot glad to meet you{newline}Am here to take you around our new App{newline}Enjoy!!!{newline}{greetings}
+{greetings}{newline}Welcome to Ally{newline}Would you like to know more about ALLY ask me. My name is Ally The Bot your assistant
+Hello{newline}My name is Ally The Bot your assistant{newlinw}Welcome to ALLY Super App{newline}Ready to have a new experience in your social interaction? ALLY has got you. ALLY Super App is a new online chat app designed to make your social interaction a fun process{newline}{newline}Welcome Esther!{newline}{greetings}
