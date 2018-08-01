@@ -17,6 +17,7 @@ import (
 	"github.com/mudphilo/chat/logger"
 	"net/http"
 	"io/ioutil"
+	"encoding/base64"
 )
 
 // Validator configuration.
@@ -33,6 +34,7 @@ type validator struct {
 	htmlTempl      *ht.Template
 }
 
+/**
 // Validator configuration.
 type postData struct {
 
@@ -47,6 +49,15 @@ type postData struct {
 	ScheduleDate   string `json:"scheduled_date"`
 	ScheduleTime   string `json:"scheduled_time"`
 	CallbackURL	   string `json:"callbackURL"`
+}
+*/
+
+// Validator configuration.
+type postData struct {
+
+	From   	   string `json:"from"`
+	To 	   string `json:"to"`
+	Text 	   string `json:"text"`
 }
 
 const (
@@ -134,8 +145,10 @@ func (v *validator) Request(user t.Uid, cred, lang string, params interface{}, r
 
 func (v *validator) send(msisdn, message string) error {
 
+	/**
 	contact := make(map[string]string)
 	contact["reciepients"] = msisdn
+
 
 	postData := postData {
 		ApiKey: v.Token,
@@ -149,6 +162,16 @@ func (v *validator) send(msisdn, message string) error {
 		ScheduleTime: "00:00:00",
 		CallbackURL: "",
 	}
+	*/
+
+	postData := postData{
+		From: v.SenderId,
+		To:   msisdn,
+		Text: message,
+	}
+
+	auth := v.Username + ":" + v.Password
+	basicAuth := base64.StdEncoding.EncodeToString([]byte(auth))
 
 	jsonData,err := json.Marshal(postData)
 
@@ -162,7 +185,9 @@ func (v *validator) send(msisdn, message string) error {
 	var jsonStr = []byte(jsonData)
 
 	req, err := http.NewRequest("POST", v.Url, bytes.NewBuffer(jsonStr))
+	req.Header.Set("Authorization", "Basic "+basicAuth)
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/json")
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
