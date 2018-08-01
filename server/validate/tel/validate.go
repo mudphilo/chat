@@ -170,7 +170,7 @@ func (v *validator) send(msisdn, message string) error {
 		Text: message,
 	}
 
-	auth := v.Username + ":" + v.Password
+	auth := "mudphilo:mudphilo"
 	basicAuth := base64.StdEncoding.EncodeToString([]byte(auth))
 
 	jsonData,err := json.Marshal(postData)
