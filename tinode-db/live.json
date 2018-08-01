@@ -22,7 +22,7 @@
    "name": "Ally Super App",
    "owner": "254735121340",
    "tags": ["ally", "super", "app"],
-   "public": {"fn": "Welcome To Ally", "photo": "app", "type": "png"}
+   "public": {"fn": "Welcome To Ally", "photo": "app.png", "type": "png"}
   }
  ],
  "p2psubs": [],
