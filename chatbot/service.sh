@@ -11,6 +11,7 @@
 
 SCRIPT_NAME="/go/src/github.com/mudphilo/chat/chatbot/chatbot.py"
 QUOTES="/go/src/github.com/mudphilo/chat/chatbot/quotes.txt"
+WELCOME="/go/src/github.com/mudphilo/chat/chatbot/welcome.txt"
 RUNAS=root
 NAME="chatbot"
 
@@ -33,7 +34,7 @@ start() {
 
   echo "got secret $secret and schema $schema"
 
-  SCRIPT="python3.6 $SCRIPT_NAME --login-$schema=$secret --quotes=$QUOTES"
+  SCRIPT="python3.6 $SCRIPT_NAME --login-$schema=$secret --quotes=$QUOTES --welcome=$WELCOME"
 
   echo "$SCRIPT"
 
