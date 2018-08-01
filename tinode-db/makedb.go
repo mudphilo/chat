@@ -156,9 +156,10 @@ func getPassword(n int) string {
 
 func main() {
 
-	var reset = flag.Bool("reset", false, "first delete the database if one exists")
+	var reset = flag.Bool("reset", true, "first delete the database if one exists")
 	var datafile = flag.String("data", datafile, "name of file with sample data")
 	var conffile = flag.String("config", configPath, "config of the database connection")
+
 	flag.Parse()
 
 	var data Data
