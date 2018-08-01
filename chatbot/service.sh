@@ -10,6 +10,7 @@
 ### END INIT INFO
 
 SCRIPT_NAME="/go/src/github.com/mudphilo/chat/chatbot/chatbot.py"
+WDIR="/go/src/github.com/mudphilo/chat/chatbot"
 QUOTES="/go/src/github.com/mudphilo/chat/chatbot/quotes.txt"
 WELCOME="/go/src/github.com/mudphilo/chat/chatbot/welcome.txt"
 RUNAS=root
@@ -26,6 +27,7 @@ start() {
     return 1
   fi
   echo 'Starting service?~@?' >&2
+  cd $WDIR
 
   CREDENTIALS="/go/src/github.com/mudphilo/chat/chatbot/cookie.ini"
 
