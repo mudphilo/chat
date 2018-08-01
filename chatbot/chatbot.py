@@ -107,13 +107,18 @@ class Plugin(pbx.PluginServicer):
             action = "unknown"
 
         print("Account", action, ":", acc_event.user_id, acc_event.public)
-        name = "Ally"
-        # TODO: subscribe to the new user.
-        if hasattr(acc_event.public, 'fn'):
-            name = acc_event.public.fn
-        msq = next_welcome(name)
-        client_post(subscribe(acc_event.user_id))
-        client_post(publish(acc_event.user_id,msq))
+
+        if action == "created":
+            name = "Ally"
+            # TODO: subscribe to the new user.
+
+            if hasattr(acc_event.public, 'fn'):
+                name = acc_event.public.fn.decode('utf-8')
+
+            msq = next_welcome(name)
+            client_post(subscribe(acc_event.user_id))
+            client_post(publish(acc_event.user_id,msq))
+
         return pb.Unused()
 
 queue_out = queue.Queue()
