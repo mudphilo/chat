@@ -1,0 +1,92 @@
+{
+"users": [
+  {
+   "createdAt": "-140h",
+   "email": "info@allysuperapp.co.ke",
+   "tel": "254735121340",
+   "passhash": "0735121340",
+   "private": {"comment": "Iam Your Assistant"},
+   "public": {"fn": "Ally The Bot", "photo": "ally.png", "type": "png"},
+   "state": 1,
+   "status": {
+    "text": "DND"
+   },
+   "username": "254735121340",
+	"addressBook": ["email:philipmudenyo@gmail.com","tel:254726120256"]
+  }
+ ],
+
+ "grouptopics": [
+  {
+   "createdAt": "-128h",
+   "name": "Ally Super App",
+   "owner": "254735121340",
+   "tags": ["ally", "super", "app"],
+   "public": {"fn": "Welcome To Ally", "photo": "app", "type": "png"}
+  }
+ ],
+ "p2psubs": [],
+ "groupsubs": [
+ ],
+ "messages": [
+  "Caution: Do not view laser light with remaining eye.",
+  "Caution: breathing may be hazardous to your health.",
+  "Celebrate Hannibal Day this year. Take an elephant to lunch.",
+  "Celibacy is not hereditary.",
+  "Center 1127 -- It's not just a job, it's an adventure!",
+  "Center meeting at 4pm in 2C-543",
+  "Centran manuals are available in 2B-515.",
+  "Charlie don't surf.",
+  "Children are hereditary: if your parents didn't have any, neither will you.",
+  "Clothes make the man. Naked people have little or no influence on society.",
+  "Club sandwiches, not baby seals.",
+  "Cocaine is nature's way of saying you make too much money.",
+  "Cogito Ergo Spud.",
+  "Cogito cogito ergo cogito sum.",
+  "Colorless green ideas sleep furiously.",
+  "Communication is only possible between equals.",
+  "Computers are not intelligent.  They only think they are.",
+  "Consistency is always easier to defend than correctness.",
+  "Constants aren't.  Variables don't.  LISP does.  Functions won't.  Bytes do.",
+  "Contains no kung fu, car chases or decapitations.",
+  "Continental Life.  Why do you ask?",
+  "Convictions cause convicts -- what you believe imprisons you.",
+  "Core Error - Bus Dumped",
+  "Could not open 2147478952 framebuffers.",
+  "Courage is something you can never totally own or totally lose.",
+  "Cowards die many times before their deaths;/The valiant never taste of death but once.",
+  "Crazee Edeee, his prices are INSANE!!!",
+  "Creativity is no substitute for knowing what you are doing.",
+  "Creditors have much better memories than debtors.",
+  "Critics are like eunuchs in a harem: they know how it's done, they've seen it done",
+  "every day, but they're unable to do it themselves.  -Brendan Behan",
+  "Cthulhu Saves!  ...  in case He's hungry later.",
+  "Dames is like streetcars -- The oceans is full of 'em.  -Archie Bunker",
+  "Dames lie about anything - just for practice.  -Raymond Chandler",
+  "Damn it, i gotta get outta here!",
+  "Dangerous knowledge is a little thing.",
+  "It is certain",
+  "It is decidedly so",
+  "Without a doubt",
+  "Yes definitely",
+  "You may rely on it",
+  "As I see it yes",
+  "Most likely",
+  "Outlook good",
+  "Yes",
+  "No",
+  "No! No, no, no! No!!",
+  "Signs point to yes",
+  "Reply hazy try again",
+  "Ask again later",
+  "Better not tell you now",
+  "Cannot predict now",
+  "Concentrate and ask again",
+  "Don't count on it",
+  "My reply is no",
+  "My sources say no",
+  "Outlook not so good",
+  "Very doubtful",
+  "All your base are belong to us"
+ ]
+}

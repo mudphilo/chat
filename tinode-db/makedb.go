@@ -16,6 +16,11 @@ import (
 	"github.com/mudphilo/chat/server/store"
 )
 
+const (
+    configPath = "/go/src/github.com/mudphilo/chat/tinode-db/tinode.conf"
+    datafile = "/go/src/github.com/mudphilo/chat/tinode-db/live.json"
+)
+
 type configType struct {
 	StoreConfig json.RawMessage `json:"store_config"`
 }
@@ -151,10 +156,8 @@ func getPassword(n int) string {
 
 func main() {
 
-	var configPath = "/go/src/github.com/mudphilo/chat/tinode-db/tinode.conf"
-
 	var reset = flag.Bool("reset", false, "first delete the database if one exists")
-	var datafile = flag.String("data", "", "name of file with sample data")
+	var datafile = flag.String("data", datafile, "name of file with sample data")
 	var conffile = flag.String("config", configPath, "config of the database connection")
 	flag.Parse()
 
