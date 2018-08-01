@@ -75,6 +75,7 @@ uninstall() {
   fi
 }
 
+
 status() {
     printf "%-50s" "Checking $NAME ..."
     if [ -f $PIDFILE ] && [ -s $PIDFILE ]; then
