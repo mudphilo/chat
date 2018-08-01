@@ -19,7 +19,7 @@
  "grouptopics": [
   {
    "createdAt": "-128h",
-   "name": "Ally Super App",
+   "name": "AllySuperApp",
    "owner": "254735121340",
    "tags": ["ally", "super", "app"],
    "public": {"fn": "Welcome To Ally", "photo": "app.png", "type": "png"}
