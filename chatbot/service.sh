@@ -17,6 +17,8 @@ NAME="chatbot"
 PIDFILE="/var/run/$NAME.pid"
 LOGFILE="/var/log/$NAME/daemon.log"
 
+source /etc/profile
+
 start() {
   if [ -f $PIDFILE ] && [ -s $PIDFILE ] && kill -0 $(cat $PIDFILE); then
     echo 'Service already running' >&2
