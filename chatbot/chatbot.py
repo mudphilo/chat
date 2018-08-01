@@ -14,6 +14,7 @@ import random
 import signal
 import sys
 import time
+import datetime
 
 import grpc
 
@@ -51,6 +52,7 @@ def del_subscription(topic):
 
 # Quotes from the fortune cookie file
 quotes = []
+welcome = []
 
 def next_id():
     next_id.tid += 1
@@ -68,6 +70,29 @@ def next_quote(msg):
     return "*"+msg+"*\n\n"+qt
 next_quote.idx = 0
 
+def next_welcome(name):
+    idx = random.randrange(0, len(welcome))
+    # Make sure welcome and not repeated
+    next_welcome.idx = idx
+    qt = welcome[idx]
+    greets = greetings()
+    qt = qt.replace('{newline}','\n')
+    qt = qt.replace('{name}',name)
+    qt = qt.replace('{greetings}',greets)
+    return qt
+next_welcome.idx = 0
+
+def greetings():
+    currentTime = datetime.datetime.now()
+    msg = ''
+    if currentTime.hour < 12 :
+        msg = 'Good Morning'
+    elif 12 <= currentTime.hour < 18:
+        msg = 'Good Afternoon'
+    else:
+        msg = 'Good Evenning'
+    return msg
+
 # This is the class for the server-side gRPC endpoints
 class Plugin(pbx.PluginServicer):
     def Account(self, acc_event, context):
@@ -84,7 +109,9 @@ class Plugin(pbx.PluginServicer):
         print("Account", action, ":", acc_event.user_id, acc_event.public)
 
         # TODO: subscribe to the new user.
-
+        msq = next_welcome(acc_event.public.fn)
+        client_post(subscribe(acc_event.user_id))
+        client_post(publish(acc_event.user_id,msq))
         return pb.Unused()
 
 queue_out = queue.Queue()
@@ -254,6 +281,13 @@ def load_quotes(file_name):
 
     return len(quotes)
 
+def load_welcome(file_name):
+    with open(file_name, 'r', encoding='utf-8') as f:
+        for line in f:
+            welcome.append(line.strip())
+
+    return len(welcome)
+
 def run(args):
     schema = None
     secret = None
@@ -281,6 +315,9 @@ def run(args):
     if schema:
         # Load random quotes from file
         print("Loaded {} quotes".format(load_quotes(args.quotes)))
+
+        # Load random welcome messages from file
+        print("Loaded {} welcome messages".format(load_welcome(args.welcome)))
 
         # Start Plugin server
         server = init_server(args.listen)
@@ -328,6 +365,7 @@ if __name__ == '__main__':
     parser.add_argument('--login-token', help='login using token authentication')
     parser.add_argument('--login-cookie', default='.tn-cookie', help='read credentials from the provided cookie file')
     parser.add_argument('--quotes', default='quotes.txt', help='file with messages for the chatbot to use, one message per line')
+    parser.add_argument('--welcome', default='welcome.txt', help='file with welcome messages for the chatbot to use, one message per line')
     args = parser.parse_args()
 
     run(args)
