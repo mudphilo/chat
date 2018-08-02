@@ -77,8 +77,8 @@ func listenAndServe(addr string, mux *http.ServeMux, tlsEnabled bool, jsconfig s
 	server := &http.Server{
 		Addr:    addr,
 		Handler: mux,
-		ReadTimeout: time.Duration(tlsConfig.Read.ReadTimeout)  * time.Second,
-		WriteTimeout: time.Duration(tlsConfig.Read.ReadTimeout)  * time.Second,
+		ReadTimeout: 5  * time.Second,
+		WriteTimeout: 10  * time.Second,
 	}
 
 	if tlsEnabled || tlsConfig.Enabled {
