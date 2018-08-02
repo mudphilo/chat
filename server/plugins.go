@@ -686,6 +686,9 @@ func pluginActionToCrud(action int) pbx.Crud {
 
 // pluginIDAndTopic extracts message ID and topic name.
 func pluginIDAndTopic(msg *ClientComMessage) (string, string) {
+
+	logger.Log.Println(msg)
+
 	if msg.Hi != nil {
 		return msg.Hi.Id, ""
 	}
