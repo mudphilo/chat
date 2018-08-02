@@ -41,6 +41,7 @@ type tlsConfig struct {
 	// If Autocert is not defined, provide file names of static certificate and key
 	CertFile string `json:"cert_file"`
 	KeyFile  string `json:"key_file"`
+	Read *read `json:"read"`
 }
 
 type tlsAutocertConfig struct {
@@ -50,6 +51,13 @@ type tlsAutocertConfig struct {
 	CertCache string `json:"cache"`
 	// Contact email for letsencrypt
 	Email string `json:"email"`
+}
+
+type read struct {
+	// server write timeout
+	WriteTimeout int `json:"write_timeout"`
+	// server read timeout
+	ReadTimeout int `json:"read_timeout"`
 }
 
 func listenAndServe(addr string, mux *http.ServeMux, tlsEnabled bool, jsconfig string, stop <-chan bool) error {
@@ -65,10 +73,14 @@ func listenAndServe(addr string, mux *http.ServeMux, tlsEnabled bool, jsconfig s
 
 	httpdone := make(chan bool)
 
+
 	server := &http.Server{
 		Addr:    addr,
 		Handler: mux,
+		ReadTimeout: time.Duration(tlsConfig.Read.ReadTimeout)  * time.Second,
+		WriteTimeout: time.Duration(tlsConfig.Read.ReadTimeout)  * time.Second,
 	}
+
 	if tlsEnabled || tlsConfig.Enabled {
 
 		if tlsConfig.StrictMaxAge > 0 {
