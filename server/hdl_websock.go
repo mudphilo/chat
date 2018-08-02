@@ -65,10 +65,10 @@ func (sess *Session) readLoop() {
 func (sess *Session) writeLoop() {
 	ticker := time.NewTicker(pingPeriod)
 
-	defer func() {
+	//defer func() {
 		ticker.Stop()
 		sess.closeWS() // break readLoop
-	}()
+	//}()
 
 	for {
 		select {
