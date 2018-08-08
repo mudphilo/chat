@@ -679,7 +679,7 @@ func (s *Session) login(msg *ClientComMessage) {
 
 	if !s.uid.IsZero() {
 		s.queueOut(ErrAlreadyAuthenticated(msg.Login.Id, "", msg.timestamp))
-		return
+		//return
 	}
 
 	handler := store.GetAuthHandler(msg.Login.Scheme)
